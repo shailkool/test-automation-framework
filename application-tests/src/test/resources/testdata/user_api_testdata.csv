@@ -1,0 +1,6 @@
+TestCase,Name,Email,Role,ExpectedStatus,Description
+TC_API_001,John Doe,john.doe@example.com,user,201,Create user with valid data
+TC_API_002,Jane Smith,jane.smith@example.com,admin,201,Create admin user
+TC_API_003,Test User,test@example.com,user,201,Create test user
+TC_API_004,,invalid@example.com,user,400,Create user with empty name
+TC_API_005,User Five,user5@example.com,invalid_role,400,Create user with invalid role

@@ -1,0 +1,6 @@
+TestCase,Username,Password,ExpectedResult,Description
+TC_LOGIN_001,validuser@example.com,ValidPass123,Success,Valid credentials login
+TC_LOGIN_002,invaliduser@example.com,WrongPass,Failure,Invalid username
+TC_LOGIN_003,validuser@example.com,WrongPass,Failure,Invalid password
+TC_LOGIN_004,,,Failure,Empty credentials
+TC_LOGIN_005,testuser@example.com,Test@123,Success,Special characters in password
