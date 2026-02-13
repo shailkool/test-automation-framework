@@ -21,10 +21,10 @@ public class PlaywrightManager {
      * Initialize Playwright and create browser
      */
     public static void initializeBrowser() {
-        initializeBrowser(BrowserType.valueOf(config.getBrowser().toUpperCase()));
+        initializeBrowser(BrowserEngine.valueOf(config.getBrowser().toUpperCase()));
     }
     
-    public static void initializeBrowser(BrowserType browserType) {
+    public static void initializeBrowser(BrowserEngine  browserEngine) {
         try {
             // Create Playwright instance
             Playwright pw = Playwright.create();
@@ -40,7 +40,7 @@ public class PlaywrightManager {
                     .setTimeout(config.getTimeout());
             
             Browser br;
-            switch (browserType) {
+            switch (browserEngine) {
                 case CHROMIUM:
                     br = pw.chromium().launch(launchOptions);
                     break;
@@ -65,7 +65,7 @@ public class PlaywrightManager {
             pg.setDefaultTimeout(config.getTimeout());
             page.set(pg);
             
-            log.info("Playwright browser initialized: {}", browserType);
+            log.info("Playwright browser initialized: {}", browserEngine);
             
         } catch (Exception e) {
             log.error("Error initializing Playwright browser", e);
@@ -191,7 +191,7 @@ public class PlaywrightManager {
         return null;
     }
     
-    public enum BrowserType {
+    public enum BrowserEngine  {
         CHROMIUM,
         FIREFOX,
         WEBKIT

@@ -44,7 +44,7 @@ public class TestDataProvider {
             return new Object[0][0];
         }
         
-        return getCSVData(filePath, testName);
+        return getCSVData(filePath);
     }
     
     /**

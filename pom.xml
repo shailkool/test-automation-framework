@@ -15,8 +15,8 @@
 
     <modules>
         <module>core-framework</module>
-        <module>app-automation</module>
-        <module>app-tests</module>
+        <module>application-automation</module>
+        <module>application-tests</module>
     </modules>
 
     <properties>
@@ -33,6 +33,7 @@
         <jackson.version>2.16.1</jackson.version>
         <lombok.version>1.18.30</lombok.version>
         <commons-io.version>2.15.1</commons-io.version>
+        <commons-dbcp2.version>2.14.0</commons-dbcp2.version>
         <apache-poi.version>5.2.5</apache-poi.version>
         <opencsv.version>5.9</opencsv.version>
         

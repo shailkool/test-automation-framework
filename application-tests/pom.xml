@@ -13,7 +13,7 @@
     <artifactId>application-tests</artifactId>
     <packaging>jar</packaging>
 
-    <n>Application Tests</n>
+    <name>Application Tests</name>
     <description>Application-specific test cases</description>
 
     <dependencies>
