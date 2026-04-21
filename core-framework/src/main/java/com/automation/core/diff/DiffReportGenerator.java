@@ -16,14 +16,22 @@ import java.io.IOException;
 @Log4j2
 public class DiffReportGenerator {
 
-    /**
-     * Render {@code result} to HTML and write it to {@code outputPath}.
-     *
-     * @param result the comparison result to render
-     * @param title  human-readable report title used for headings
-     * @param outputPath filesystem path to write the HTML report to
-     */
+    private static final String DEFAULT_OLD_LABEL = "Expected";
+    private static final String DEFAULT_NEW_LABEL = "Actual";
+
     public void saveReport(DiffResult result, String title, String outputPath) {
+        saveReport(result, title, DEFAULT_OLD_LABEL, DEFAULT_NEW_LABEL, outputPath);
+    }
+
+    /**
+     * Render {@code result} to HTML and write it to {@code outputPath} using
+     * the supplied labels for the report's old/new file metadata strip.
+     */
+    public void saveReport(DiffResult result,
+                           String title,
+                           String oldLabel,
+                           String newLabel,
+                           String outputPath) {
         if (result == null) {
             throw new IllegalArgumentException("DiffResult must not be null");
         }
@@ -35,8 +43,9 @@ public class DiffReportGenerator {
 
         String html = DiffHtmlReportGenerator.generateHtml(
             result.getDataDiff(),
-            title + " - Expected",
-            title + " - Actual"
+            title,
+            oldLabel,
+            newLabel
         );
 
         try (FileWriter writer = new FileWriter(outputPath)) {
@@ -48,18 +57,26 @@ public class DiffReportGenerator {
         }
     }
 
+    public String generateHtml(DiffResult result, String title) {
+        return generateHtml(result, title, DEFAULT_OLD_LABEL, DEFAULT_NEW_LABEL);
+    }
+
     /**
      * Render {@code result} and return the HTML as a string without writing
      * to disk. Useful for embedding in email bodies or reporting dashboards.
      */
-    public String generateHtml(DiffResult result, String title) {
+    public String generateHtml(DiffResult result,
+                               String title,
+                               String oldLabel,
+                               String newLabel) {
         if (result == null) {
             throw new IllegalArgumentException("DiffResult must not be null");
         }
         return DiffHtmlReportGenerator.generateHtml(
             result.getDataDiff(),
-            title + " - Expected",
-            title + " - Actual"
+            title,
+            oldLabel,
+            newLabel
         );
     }
 

@@ -199,6 +199,42 @@ public class DataDiff {
         return allDiffs;
     }
 
+    /**
+     * Returns every {@link DiffRow} (added, deleted, modified, and unchanged)
+     * in a stable display order: left-side rows in their original input order
+     * first, followed by right-only rows in right input order. Used by the
+     * HTML report to render a single unified table.
+     */
+    public List<DiffRow> getAllRowsInOrder() {
+        java.util.Map<String, DiffRow> byKey = new java.util.HashMap<>();
+        for (DiffRow r : unchangedRows) byKey.put(r.getKey(), r);
+        for (DiffRow r : modifiedRows)  byKey.put(r.getKey(), r);
+        for (DiffRow r : deletedRows)   byKey.put(r.getKey(), r);
+        for (DiffRow r : addedRows)     byKey.put(r.getKey(), r);
+
+        List<DiffRow> ordered = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+        if (leftData != null) {
+            for (Map<String, String> row : leftData) {
+                String key = createCompositeKey(row);
+                if (seen.add(key)) {
+                    DiffRow dr = byKey.get(key);
+                    if (dr != null) ordered.add(dr);
+                }
+            }
+        }
+        if (rightData != null) {
+            for (Map<String, String> row : rightData) {
+                String key = createCompositeKey(row);
+                if (seen.add(key)) {
+                    DiffRow dr = byKey.get(key);
+                    if (dr != null) ordered.add(dr);
+                }
+            }
+        }
+        return ordered;
+    }
+
     public void printSummary() {
         DiffSummary summary = getSummary();
         System.out.println("=== Data Diff Summary ===");

@@ -139,12 +139,16 @@ public class CsvFilterSteps {
             return;
         }
 
-        String title = buildReportTitle();
-        DiffReportGenerator generator = new DiffReportGenerator();
-        String html = generator.generateHtml(result, title);
+        String title = currentScenarioName();
+        String oldLabel = "expected (feature datatable)";
+        String newLabel = sourceName == null ? "actual (filter output)" : "actual (" + sourceName + ")";
 
-        Path htmlPath = Paths.get(DIFF_OUTPUT_DIR, sanitize(title) + ".html");
-        generator.saveReport(result, title, htmlPath.toString());
+        DiffReportGenerator generator = new DiffReportGenerator();
+        String html = generator.generateHtml(result, title, oldLabel, newLabel);
+
+        String timestamp = LocalDateTime.now().format(TIMESTAMP);
+        Path htmlPath = Paths.get(DIFF_OUTPUT_DIR, sanitize(title) + "_" + timestamp + ".html");
+        generator.saveReport(result, title, oldLabel, newLabel, htmlPath.toString());
 
         attachDiff(html, title);
 
@@ -166,12 +170,6 @@ public class CsvFilterSteps {
             "Data diff: " + title
         );
         scenario.log("Data mismatch detected - see attached HTML diff '" + title + "'.");
-    }
-
-    private String buildReportTitle() {
-        String base = currentScenarioName();
-        String timestamp = LocalDateTime.now().format(TIMESTAMP);
-        return base + " [" + timestamp + "]";
     }
 
     private String currentScenarioName() {
