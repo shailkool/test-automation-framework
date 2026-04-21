@@ -11,6 +11,7 @@ import lombok.extern.log4j.Log4j2;
 import org.testng.Assert;
 
 import java.net.URL;
+import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -112,12 +113,23 @@ public class CsvFilterSteps {
         }
     }
 
+    /**
+     * Resolve a classpath-relative test resource to an absolute filesystem
+     * path. Uses {@link URL#toURI()} rather than {@link URL#getPath()} so
+     * Windows drive-letter URLs like {@code /C:/...} survive the conversion.
+     * Falls back to {@code src/test/resources} for IDE runs where the
+     * resource hasn't been copied to {@code target/test-classes} yet.
+     */
     private String resolveResource(String relativePath) {
         URL resource = Thread.currentThread()
             .getContextClassLoader()
             .getResource(relativePath);
         if (resource != null) {
-            return Paths.get(resource.getPath()).toString();
+            try {
+                return Paths.get(resource.toURI()).toString();
+            } catch (URISyntaxException | IllegalArgumentException e) {
+                log.warn("Falling back to source path for '{}': {}", relativePath, e.getMessage());
+            }
         }
         return Paths.get("src/test/resources", relativePath).toAbsolutePath().toString();
     }
