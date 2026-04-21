@@ -48,6 +48,21 @@ public class ValidationResult<T> {
     public double getElapsedTimeSeconds() {
         return elapsedTimeMillis / 1000.0;
     }
+
+    /** Alias for {@link #getAttemptNumber()} used by ValidationLoop callers. */
+    public int getIterations() {
+        return attemptNumber;
+    }
+
+    /** Alias for {@link #getElapsedTimeMillis()}. */
+    public long getDurationMillis() {
+        return elapsedTimeMillis;
+    }
+
+    /** Alias for {@link #getElapsedTimeSeconds()}. */
+    public double getDurationSeconds() {
+        return getElapsedTimeSeconds();
+    }
     
     /**
      * Check if validation succeeded on first attempt

@@ -175,7 +175,8 @@ public class UserApiTest extends BaseTest {
         Assert.assertEquals(response.getStatusCode(), 200, "Status code should be 200");
         
         // Verify all returned users have the specified role
-        for (Map<String, Object> user : response.jsonPath().getList("$")) {
+        java.util.List<Map<String, Object>> users = response.jsonPath().getList("$");
+        for (Map<String, Object> user : users) {
             Assert.assertEquals(user.get("role"), role, "All users should have role: " + role);
         }
         
