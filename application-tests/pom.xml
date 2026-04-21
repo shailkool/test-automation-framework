@@ -41,6 +41,13 @@
             <artifactId>cucumber-testng</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Cucumber HTML / Extent report adapter for beautiful reports -->
+        <dependency>
+            <groupId>tech.grasshopper</groupId>
+            <artifactId>extentreports-cucumber7-adapter</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

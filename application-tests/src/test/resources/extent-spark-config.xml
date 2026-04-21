@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extentreports>
+    <configuration>
+        <theme>dark</theme>
+        <encoding>UTF-8</encoding>
+        <protocol>https</protocol>
+        <documentTitle>Test Automation Framework - BDD Report</documentTitle>
+        <reportName>Gherkin BDD Execution Report</reportName>
+        <timeStampFormat>yyyy-MM-dd HH:mm:ss</timeStampFormat>
+        <enableTimeline>true</enableTimeline>
+        <css>
+            .brand-logo { color: #38bdf8 !important; font-weight: 700; }
+            .test-status.pass { background: linear-gradient(135deg, #10b981, #059669) !important; }
+            .test-status.fail { background: linear-gradient(135deg, #ef4444, #b91c1c) !important; }
+            .nav-wrapper { background: #0f172a !important; }
+        </css>
+    </configuration>
+</extentreports>

@@ -1,8 +1,10 @@
+@filter
 Feature: Filter CSV Data by Age and Status
   As a data analyst
   I want to filter the customer list based on configuration rules
   So that I only process relevant records
 
+  @smoke @inline
   Scenario: Filter active users over the age of 25 (inline data)
     Given a source CSV file named "customers.csv" with the following data:
       | name    | age | status   |
@@ -21,6 +23,7 @@ Feature: Filter CSV Data by Age and Status
       | Alice   | 30  | active   |
       | David   | 28  | active   |
 
+  @regression @external
   Scenario: Filter active users using externally stored CSV files
     Given a source CSV file loaded from "testdata/filter/customers.csv"
     And filter rules loaded from "testdata/filter/filter_rules.csv"
@@ -31,6 +34,7 @@ Feature: Filter CSV Data by Age and Status
       | Alice   | 30  | active   |
       | David   | 28  | active   |
 
+  @regression @operators
   Scenario: Multiple operator types against an externally stored CSV
     Given a source CSV file loaded from "testdata/filter/customers.csv"
     And a configuration feature file defining:
