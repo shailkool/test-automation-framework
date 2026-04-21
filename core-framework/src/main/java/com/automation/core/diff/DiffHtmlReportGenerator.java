@@ -12,14 +12,14 @@ import java.util.Set;
 /**
  * Renders a {@link DataDiff} as a standalone, interactive HTML report.
  *
- * <p>The report mirrors the conventional CSV-diff layout: a summary strip of
- * counters (Changed / Added / Removed / Unchanged), a file-metadata bar with
- * old and new source labels plus the key fields, pill-style filter buttons
- * ({@code All Rows}, {@code Changed}, {@code Added}, {@code Removed},
- * {@code Unchanged}, and {@code Columns}), and a single unified table that
- * highlights per-cell differences with stacked red/green pills.
+ * <p>The report is modelled on the conventional CSV-diff layout: a match
+ * percentage badge, a row of summary counters (Changed / Added / Removed /
+ * Unchanged), a file-metadata strip, pill-style filter buttons with live
+ * counts, and a single unified table that highlights per-cell differences
+ * with stacked red/green pills and a coloured accent stripe on every
+ * differing row.
  *
- * <p>The HTML is fully self-contained (inline CSS + JS with no external
+ * <p>The HTML is fully self-contained (inline CSS + JS, no external
  * fetches) so it renders identically whether opened directly from disk or
  * embedded in a masterthought cucumber report.
  */
@@ -52,10 +52,13 @@ public class DiffHtmlReportGenerator {
         int oldCount = summary.getLeftRowCount();
         int newCount = summary.getRightRowCount();
 
+        int denominator = Math.max(oldCount, newCount);
+        double matchPct = denominator == 0 ? 100.0 : (unchanged * 100.0) / denominator;
+
         List<DiffRow> rows = diff.getAllRowsInOrder();
         Set<String> columns = collectColumns(rows);
 
-        StringBuilder html = new StringBuilder(8 * 1024);
+        StringBuilder html = new StringBuilder(12 * 1024);
         html.append("<!DOCTYPE html>\n<html lang='en'>\n<head>\n");
         html.append("<meta charset='UTF-8'>\n");
         html.append("<meta name='viewport' content='width=device-width, initial-scale=1.0'>\n");
@@ -63,10 +66,10 @@ public class DiffHtmlReportGenerator {
         html.append(STYLES);
         html.append("</head>\n<body>\n<div class='container'>\n");
 
-        appendTitle(html, reportTitle, oldCount, newCount);
+        appendTitle(html, reportTitle, oldCount, newCount, matchPct);
         appendSummaryCards(html, changed, added, removed, unchanged);
         appendMetaStrip(html, oldLabel, newLabel, diff.getKeyFields());
-        appendToolbar(html, columns);
+        appendToolbar(html, columns, changed, added, removed, unchanged);
         appendTable(html, rows, columns);
 
         html.append("</div>\n");
@@ -88,14 +91,25 @@ public class DiffHtmlReportGenerator {
         }
     }
 
-    private static void appendTitle(StringBuilder html, String reportTitle, int oldCount, int newCount) {
-        html.append("<h1 class='title'>Diff <span class='dot'>·</span> ")
+    private static void appendTitle(StringBuilder html,
+                                    String reportTitle,
+                                    int oldCount,
+                                    int newCount,
+                                    double matchPct) {
+        String tone = matchPct >= 99.999 ? "high" : matchPct >= 90.0 ? "mid" : "low";
+        html.append("<div class='title-bar'>\n");
+        html.append("  <h1 class='title'>Diff <span class='dot'>·</span> ")
             .append(escapeHtml(reportTitle))
             .append("<span class='subtitle'>(old: ")
             .append(oldCount).append(" row").append(oldCount == 1 ? "" : "s")
             .append(" &rarr; new: ")
             .append(newCount).append(" row").append(newCount == 1 ? "" : "s")
             .append(")</span></h1>\n");
+        html.append("  <span class='match-badge tone-").append(tone).append("'>")
+            .append("<span class='bullet'></span>")
+            .append(String.format("%.1f", matchPct)).append("% match")
+            .append("</span>\n");
+        html.append("</div>\n");
     }
 
     private static void appendSummaryCards(StringBuilder html, int changed, int added, int removed, int unchanged) {
@@ -109,8 +123,10 @@ public class DiffHtmlReportGenerator {
 
     private static String card(String kind, String glyph, String label, int count) {
         return String.format(
-            "<div class='card card-%1$s'><span class='icon'>%2$s</span>"
-            + "<div><div class='label'>%3$s</div><div class='count'>%4$d</div></div></div>\n",
+            "<div class='card card-%1$s'>"
+            + "<span class='icon'>%2$s</span>"
+            + "<div class='meta-col'><div class='label'>%3$s</div><div class='count'>%4$d</div></div>"
+            + "</div>\n",
             kind, glyph, label, count
         );
     }
@@ -121,28 +137,35 @@ public class DiffHtmlReportGenerator {
             : String.join(", ", keyFields);
 
         html.append("<div class='meta'>\n");
-        html.append("<span class='pill'><span class='glyph'>&#x1F4C4;</span><span class='label'>Old</span>")
+        html.append("  <span class='pill'><span class='glyph'>&#x1F4C4;</span><span class='label'>Old</span>")
             .append("<span class='value'>").append(escapeHtml(oldLabel)).append("</span>")
             .append("<button class='copy' data-value='").append(escapeAttr(oldLabel)).append("'>Copy</button></span>\n");
-        html.append("<span class='pill'><span class='glyph'>&#x1F4C4;</span><span class='label'>New</span>")
+        html.append("  <span class='pill'><span class='glyph'>&#x1F4C4;</span><span class='label'>New</span>")
             .append("<span class='value'>").append(escapeHtml(newLabel)).append("</span>")
             .append("<button class='copy' data-value='").append(escapeAttr(newLabel)).append("'>Copy</button></span>\n");
-        html.append("<span class='pill'><span class='glyph'>&#x1F511;</span><span class='label'>Keys</span>")
+        html.append("  <span class='pill'><span class='glyph'>&#x1F511;</span><span class='label'>Keys</span>")
             .append("<span class='value'>").append(escapeHtml(keys)).append("</span></span>\n");
         html.append("</div>\n");
     }
 
-    private static void appendToolbar(StringBuilder html, Set<String> columns) {
+    private static void appendToolbar(StringBuilder html,
+                                      Set<String> columns,
+                                      int changed, int added, int removed, int unchanged) {
+        int total = changed + added + removed + unchanged;
         html.append("<div class='toolbar'>\n");
-        html.append("<button class='filter-btn active' data-filter='all'><span class='g'>&#x25A6;</span>All Rows</button>\n");
-        html.append("<button class='filter-btn' data-filter='modified'><span class='g'>&lt;/&gt;</span>Changed</button>\n");
-        html.append("<button class='filter-btn' data-filter='added'><span class='g'>&plus;</span>Added</button>\n");
-        html.append("<button class='filter-btn' data-filter='deleted'><span class='g'>&minus;</span>Removed</button>\n");
-        html.append("<button class='filter-btn' data-filter='unchanged'><span class='g'>&check;</span>Unchanged</button>\n");
-        html.append("<div class='columns-wrap'>");
-        html.append("<button class='filter-btn' id='columnsBtn' type='button'><span class='g'>&#9776;</span>Columns</button>\n");
-        html.append("<div class='columns-panel' id='columnsPanel' hidden>");
-        int colIndex = 3; // 1 = icon, 2 = key, 3+ = data columns
+        html.append(filterButton("all",       "&#x25A6;", "All Rows",  total,     true));
+        html.append(filterButton("modified",  "&lt;/&gt;", "Changed",  changed,   false));
+        html.append(filterButton("added",     "&plus;",    "Added",    added,     false));
+        html.append(filterButton("deleted",   "&minus;",   "Removed",  removed,   false));
+        html.append(filterButton("unchanged", "&check;",   "Unchanged", unchanged, false));
+        html.append("  <div class='spacer'></div>\n");
+        html.append("  <label class='hide-unchanged'><input type='checkbox' id='hideUnchanged'>"
+                  + "<span>Hide unchanged</span></label>\n");
+        html.append("  <div class='columns-wrap'>");
+        html.append("    <button class='filter-btn' id='columnsBtn' type='button'>"
+                  + "<span class='g'>&#9776;</span>Columns</button>\n");
+        html.append("    <div class='columns-panel' id='columnsPanel' hidden>");
+        int colIndex = 2; // 1 = row icon column, 2+ = data columns
         for (String col : columns) {
             html.append("<label><input type='checkbox' class='col-toggle' data-col='")
                 .append(colIndex++)
@@ -150,22 +173,30 @@ public class DiffHtmlReportGenerator {
                 .append(escapeHtml(col))
                 .append("</label>");
         }
-        html.append("</div></div>\n");
+        html.append("    </div>");
+        html.append("  </div>\n");
         html.append("</div>\n");
-        html.append("<label class='hide-unchanged'><input type='checkbox' id='hideUnchanged'> Hide unchanged</label>\n");
+    }
+
+    private static String filterButton(String filter, String glyph, String label, int count, boolean active) {
+        return String.format(
+            "  <button class='filter-btn%1$s' data-filter='%2$s'>"
+            + "<span class='g'>%3$s</span><span class='txt'>%4$s</span>"
+            + "<span class='badge'>%5$d</span></button>\n",
+            active ? " active" : "", filter, glyph, label, count
+        );
     }
 
     private static void appendTable(StringBuilder html, List<DiffRow> rows, Set<String> columns) {
         html.append("<div class='table-wrap'><table>\n<thead><tr>");
         html.append("<th class='row-icon'></th>");
-        html.append("<th>Key</th>");
         for (String col : columns) {
             html.append("<th>").append(escapeHtml(col)).append("</th>");
         }
         html.append("</tr></thead>\n<tbody>\n");
 
         if (rows.isEmpty()) {
-            html.append("<tr><td colspan='").append(columns.size() + 2)
+            html.append("<tr><td colspan='").append(columns.size() + 1)
                 .append("' class='empty'>No rows to display</td></tr>\n");
         }
 
@@ -183,7 +214,6 @@ public class DiffHtmlReportGenerator {
         html.append("<tr class='row row-").append(rowKind)
             .append("' data-type='").append(rowKind).append("'>");
         html.append("<td class='row-icon'><span class='dot'>").append(glyph).append("</span></td>");
-        html.append("<td class='key-cell'>").append(escapeHtml(row.getKey())).append("</td>");
 
         Map<String, String> left = row.getLeftRow();
         Map<String, String> right = row.getRightRow();
@@ -292,67 +322,144 @@ public class DiffHtmlReportGenerator {
 
     private static final String STYLES = """
         <style>
+          :root {
+            --bg:          #f6f8fa;
+            --surface:     #ffffff;
+            --border:      #e5e7eb;
+            --text:        #1f2937;
+            --muted:       #6b7280;
+            --primary:     #0f5132;
+            --primary-soft:#e6f2ec;
+
+            --changed:      #4338ca;
+            --changed-soft: #eef0fb;
+            --changed-chip: #dfe3fb;
+            --added:        #166534;
+            --added-soft:   #e7f5ec;
+            --added-chip:   #cbe8d4;
+            --removed:      #b42318;
+            --removed-soft: #fdecee;
+            --removed-chip: #f6cfd3;
+            --unchanged:    #15803d;
+            --unchanged-soft:#ecf3ef;
+            --unchanged-chip:#d3e4d8;
+
+            --old-pill-bg:  #fde2e4;
+            --old-pill-fg:  #8a1c23;
+            --new-pill-bg:  #d7efdd;
+            --new-pill-fg:  #14532d;
+
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+            --shadow-md: 0 4px 10px rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(15, 23, 42, 0.03);
+          }
+
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            color: #1f2937;
-            background: #ffffff;
-            padding: 28px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            color: var(--text);
+            background:
+              radial-gradient(1200px 400px at 0% -10%, rgba(15, 81, 50, 0.08), transparent 60%),
+              radial-gradient(900px 320px at 100% -10%, rgba(67, 56, 202, 0.06), transparent 60%),
+              linear-gradient(180deg, #f8fafc 0%, #ffffff 320px);
+            padding: 32px 28px 56px;
             font-size: 14px;
+            min-height: 100vh;
           }
           .container { max-width: 1400px; margin: 0 auto; }
 
+          .title-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 22px;
+          }
           h1.title {
-            color: #0f5132;
+            color: var(--primary);
             font-size: 30px;
             font-weight: 800;
-            margin-bottom: 18px;
             display: flex;
             align-items: baseline;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 10px;
+            letter-spacing: -0.01em;
           }
-          h1.title .dot { color: #0f5132; font-weight: 800; }
+          h1.title .dot { color: var(--primary); font-weight: 800; }
           h1.title .subtitle {
             font-size: 14px;
-            color: #6b7280;
-            font-weight: 400;
-            margin-left: 6px;
+            color: var(--muted);
+            font-weight: 500;
           }
+          .match-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 14px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 0.01em;
+            box-shadow: var(--shadow-sm);
+          }
+          .match-badge .bullet {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+          }
+          .match-badge.tone-high { background: #dcfce7; color: #14532d; }
+          .match-badge.tone-high .bullet { background: #16a34a; }
+          .match-badge.tone-mid  { background: #fef3c7; color: #92400e; }
+          .match-badge.tone-mid  .bullet { background: #d97706; }
+          .match-badge.tone-low  { background: #fee2e2; color: #991b1b; }
+          .match-badge.tone-low  .bullet { background: #dc2626; }
 
           .summary-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 14px;
-            margin-bottom: 18px;
+            margin-bottom: 20px;
           }
           .card {
+            background: var(--surface);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            padding: 16px 18px;
             display: flex;
             align-items: center;
             gap: 14px;
-            padding: 14px 18px;
-            border-radius: 10px;
+            border-left: 4px solid transparent;
+            transition: transform 120ms ease, box-shadow 120ms ease;
+          }
+          .card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.04);
           }
           .card .icon {
-            width: 34px; height: 34px; border-radius: 50%;
+            width: 40px; height: 40px; border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 14px; font-weight: 700;
+            font-size: 14px; font-weight: 800;
           }
-          .card .label { font-size: 12px; color: #6b7280; text-transform: none; }
-          .card .count { font-size: 24px; font-weight: 800; color: #111827; line-height: 1; margin-top: 4px; }
+          .card .label { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+          .card .count { font-size: 26px; font-weight: 800; color: #0f172a; line-height: 1.1; margin-top: 2px; }
 
-          .card-changed   { background: #eef0fb; }
-          .card-changed   .icon { background: #dfe3fb; color: #3730a3; }
-          .card-added     { background: #e7f5ec; }
-          .card-added     .icon { background: #cbe8d4; color: #166534; }
-          .card-removed   { background: #fce9eb; }
-          .card-removed   .icon { background: #f6cfd3; color: #991b1b; }
-          .card-unchanged { background: #ecf3ef; }
-          .card-unchanged .icon { background: #d3e4d8; color: #15803d; }
+          .card-changed   { border-left-color: var(--changed); }
+          .card-changed   .icon { background: var(--changed-chip); color: var(--changed); }
+          .card-added     { border-left-color: var(--added); }
+          .card-added     .icon { background: var(--added-chip); color: var(--added); }
+          .card-removed   { border-left-color: var(--removed); }
+          .card-removed   .icon { background: var(--removed-chip); color: var(--removed); }
+          .card-unchanged { border-left-color: var(--unchanged); }
+          .card-unchanged .icon { background: var(--unchanged-chip); color: var(--unchanged); }
 
           .meta {
-            background: #f4f6f8;
-            border-radius: 10px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
             padding: 12px 18px;
             display: flex;
             flex-wrap: wrap;
@@ -360,45 +467,76 @@ public class DiffHtmlReportGenerator {
             align-items: center;
             margin-bottom: 18px;
             font-size: 13px;
-            color: #374151;
+            color: var(--text);
+            box-shadow: var(--shadow-sm);
           }
           .meta .pill { display: inline-flex; align-items: center; gap: 8px; }
           .meta .glyph { font-size: 14px; }
-          .meta .label { font-weight: 600; color: #4b5563; }
-          .meta .value { color: #111827; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+          .meta .label { font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; font-size: 11px; }
+          .meta .value { color: #0f172a; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
           .meta button.copy {
             padding: 3px 10px;
-            border-radius: 6px;
-            border: 1px solid #d1d5db;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
             background: white;
             cursor: pointer;
             font-size: 12px;
-            color: #374151;
+            color: var(--muted);
+            transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
           }
-          .meta button.copy:hover { background: #f9fafb; }
+          .meta button.copy:hover { background: var(--primary-soft); border-color: var(--primary); color: var(--primary); }
 
           .toolbar {
             display: flex;
             gap: 10px;
-            margin-bottom: 10px;
+            margin-bottom: 14px;
             flex-wrap: wrap;
             align-items: center;
           }
+          .toolbar .spacer { flex: 1; }
           .filter-btn {
-            padding: 8px 14px;
-            border-radius: 8px;
-            border: 1px solid #d1d5db;
+            padding: 7px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
             background: white;
             cursor: pointer;
             font-size: 13px;
-            color: #1f2937;
+            color: var(--text);
             display: inline-flex; align-items: center; gap: 8px;
             font-weight: 500;
+            transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
           }
-          .filter-btn .g { font-weight: 700; color: #6b7280; }
-          .filter-btn:hover { background: #f9fafb; }
-          .filter-btn.active { background: #0f5132; color: white; border-color: #0f5132; }
+          .filter-btn .g { font-weight: 700; color: var(--muted); }
+          .filter-btn .badge {
+            background: rgba(15, 23, 42, 0.08);
+            padding: 1px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted);
+          }
+          .filter-btn:hover { background: #f3f4f6; }
+          .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+          }
           .filter-btn.active .g { color: white; }
+          .filter-btn.active .badge {
+            background: rgba(255, 255, 255, 0.22);
+            color: white;
+          }
+
+          .hide-unchanged {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--muted);
+            cursor: pointer;
+            user-select: none;
+          }
+          .hide-unchanged input { accent-color: var(--primary); cursor: pointer; }
 
           .columns-wrap { position: relative; }
           .columns-panel {
@@ -406,39 +544,27 @@ public class DiffHtmlReportGenerator {
             top: calc(100% + 6px);
             right: 0;
             background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
             padding: 10px 14px;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.10);
             z-index: 10;
-            min-width: 180px;
-            max-height: 280px;
+            min-width: 200px;
+            max-height: 320px;
             overflow-y: auto;
           }
           .columns-panel label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 4px 0;
-            font-size: 13px;
-            cursor: pointer;
+            display: flex; align-items: center; gap: 8px;
+            padding: 5px 0; font-size: 13px; cursor: pointer;
           }
-
-          .hide-unchanged {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 14px;
-            font-size: 13px;
-            color: #374151;
-            cursor: pointer;
-          }
-          .hide-unchanged input { cursor: pointer; }
+          .columns-panel input { accent-color: var(--primary); }
 
           .table-wrap {
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
             overflow: hidden;
+            box-shadow: var(--shadow-md);
+            background: white;
           }
           table {
             width: 100%;
@@ -448,64 +574,74 @@ public class DiffHtmlReportGenerator {
           }
           thead th {
             background: #f8fafc;
-            font-weight: 600;
-            color: #0f172a;
-            padding: 10px 12px;
+            font-weight: 700;
+            color: #334155;
+            padding: 11px 14px;
             text-align: left;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1px solid var(--border);
             white-space: nowrap;
+            position: sticky;
+            top: 0;
+            font-size: 12px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            z-index: 1;
           }
           tbody td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #e5e7eb;
+            padding: 11px 14px;
+            border-bottom: 1px solid var(--border);
             vertical-align: middle;
           }
           tbody tr:last-child td { border-bottom: none; }
-          tbody tr:hover td { background: #fcfdff; }
+          tbody tr:hover td { background: #fafcff; }
+          tbody tr.row-unchanged:nth-child(even) td { background: #fbfcfd; }
 
-          td.row-icon { width: 36px; text-align: center; color: #6b7280; }
+          td.row-icon { width: 44px; text-align: center; color: var(--muted); padding-left: 10px; padding-right: 6px; }
           td.row-icon .dot {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            font-weight: 700;
-            line-height: 1;
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 26px; height: 26px;
+            border-radius: 50%;
+            font-size: 12px; font-weight: 800;
           }
-          tr.row-modified  td.row-icon .dot { color: #3730a3; }
-          tr.row-added     td.row-icon .dot { color: #166534; }
-          tr.row-deleted   td.row-icon .dot { color: #991b1b; }
-          tr.row-unchanged td.row-icon .dot { color: #15803d; }
 
-          td.key-cell { font-weight: 600; color: #0f172a; }
+          tr.row-modified  { box-shadow: inset 3px 0 0 var(--changed); }
+          tr.row-modified  td.row-icon .dot { background: var(--changed-soft); color: var(--changed); }
+          tr.row-added     { box-shadow: inset 3px 0 0 var(--added); }
+          tr.row-added     td.row-icon .dot { background: var(--added-soft); color: var(--added); }
+          tr.row-deleted   { box-shadow: inset 3px 0 0 var(--removed); }
+          tr.row-deleted   td.row-icon .dot { background: var(--removed-soft); color: var(--removed); }
+          tr.row-unchanged td.row-icon .dot { background: var(--unchanged-soft); color: var(--unchanged); }
 
           .pill-old {
             display: inline-block;
-            background: #fce3e6;
-            color: #8b1c23;
-            padding: 2px 10px;
-            border-radius: 5px;
+            background: var(--old-pill-bg);
+            color: var(--old-pill-fg);
+            padding: 3px 10px;
+            border-radius: 6px;
             margin-bottom: 4px;
+            font-weight: 500;
           }
           .pill-new {
             display: inline-block;
-            background: #d6efdb;
-            color: #14532d;
-            padding: 2px 10px;
-            border-radius: 5px;
-          }
-
-          tr.row-deleted .cell-val.pill-old,
-          tr.row-added   .cell-val.pill-new {
-            padding: 2px 10px;
-            border-radius: 5px;
+            background: var(--new-pill-bg);
+            color: var(--new-pill-fg);
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-weight: 500;
           }
 
           tbody td.empty {
             text-align: center;
-            padding: 40px;
-            color: #6b7280;
+            padding: 48px;
+            color: var(--muted);
             font-style: italic;
+          }
+
+          @media (max-width: 720px) {
+            body { padding: 20px 14px; }
+            h1.title { font-size: 24px; }
+            .summary-cards { grid-template-columns: repeat(2, 1fr); }
+            .toolbar .spacer { flex: 0 0 100%; }
           }
         </style>
         """;
