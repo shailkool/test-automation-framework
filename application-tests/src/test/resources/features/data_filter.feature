@@ -46,3 +46,23 @@ Feature: Filter CSV Data by Age and Status
     And the resulting data should be:
       | name  | age | status |
       | Alice | 30  | active |
+
+  @diff @demo
+  Scenario: Deliberate mismatch to demonstrate the HTML data diff report
+    Given a source CSV file named "customers.csv" with the following data:
+      | name    | age | status   |
+      | Alice   | 30  | active   |
+      | Bob     | 22  | active   |
+      | Charlie | 35  | inactive |
+      | David   | 28  | active   |
+    And a configuration feature file defining:
+      | column | operator | value  |
+      | age    | >        | 25     |
+      | status | ==       | active |
+    When the filtering engine is executed
+    Then the output should contain 2 records
+    And the resulting data should be:
+      | name    | age | status   |
+      | Alice   | 30  | active   |
+      | David   | 29  | inactive |
+      | Erin    | 40  | active   |

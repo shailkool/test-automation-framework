@@ -1,8 +1,13 @@
 package com.automation.tests.bdd.steps;
 
+import com.automation.core.diff.DataDiff;
+import com.automation.core.diff.DiffReportGenerator;
+import com.automation.core.diff.DiffResult;
 import com.automation.core.filter.CsvFilterEngine;
 import com.automation.core.filter.FilterRule;
 import io.cucumber.datatable.DataTable;
+import io.cucumber.java.Before;
+import io.cucumber.java.Scenario;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -12,7 +17,11 @@ import org.testng.Assert;
 
 import java.net.URL;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -27,10 +36,20 @@ import java.util.Map;
 @Log4j2
 public class CsvFilterSteps {
 
+    private static final String DIFF_OUTPUT_DIR = "test-output/cucumber-diff";
+    private static final DateTimeFormatter TIMESTAMP =
+        DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
+
+    private Scenario scenario;
     private String sourceName;
     private List<Map<String, String>> sourceRows = new ArrayList<>();
     private List<FilterRule> rules = new ArrayList<>();
     private List<Map<String, String>> filtered;
+
+    @Before
+    public void captureScenario(Scenario scenario) {
+        this.scenario = scenario;
+    }
 
     @Given("a source CSV file named {string} with the following data:")
     public void aSourceCsvFileWithData(String name, DataTable table) {
@@ -90,27 +109,80 @@ public class CsvFilterSteps {
         );
     }
 
+    /**
+     * Compare the filtered output with the expected table using the DataDiff
+     * library. The first column of the expected table is treated as the
+     * composite key so added/deleted rows are detected as well as per-field
+     * modifications. On mismatch an HTML diff report is rendered via
+     * {@link DiffReportGenerator}, saved under
+     * {@code test-output/cucumber-diff/}, and attached to the running scenario
+     * so masterthought embeds it in the HTML report.
+     */
     @And("the resulting data should be:")
     public void theResultingDataShouldBe(DataTable expectedTable) {
+        Assert.assertNotNull(filtered, "Filter output has not been produced");
+
         List<Map<String, String>> expected = expectedTable.asMaps(String.class, String.class);
-        Assert.assertEquals(
-            filtered.size(),
-            expected.size(),
-            "Row count mismatch between expected and actual"
-        );
-        for (int i = 0; i < expected.size(); i++) {
-            Map<String, String> expectedRow = expected.get(i);
-            Map<String, String> actualRow = filtered.get(i);
-            for (Map.Entry<String, String> e : expectedRow.entrySet()) {
-                Assert.assertEquals(
-                    actualRow.get(e.getKey()),
-                    e.getValue(),
-                    String.format(
-                        "Row %d column '%s' mismatch", i, e.getKey()
-                    )
-                );
-            }
+        if (expected.isEmpty()) {
+            Assert.assertEquals(filtered.size(), 0, "Expected an empty result set");
+            return;
         }
+
+        String keyField = expected.get(0).keySet().iterator().next();
+        DiffResult result = DataDiff.builder()
+            .keyField(keyField)
+            .build()
+            .compare(expected, filtered);
+
+        if (result.isIdentical()) {
+            log.info("Data matched expected ({} rows)", result.getMatchedRows());
+            return;
+        }
+
+        String title = buildReportTitle();
+        DiffReportGenerator generator = new DiffReportGenerator();
+        String html = generator.generateHtml(result, title);
+
+        Path htmlPath = Paths.get(DIFF_OUTPUT_DIR, sanitize(title) + ".html");
+        generator.saveReport(result, title, htmlPath.toString());
+
+        attachDiff(html, title);
+
+        Assert.fail(String.format(
+            "Data mismatch in scenario '%s' - %s. HTML diff: %s",
+            currentScenarioName(),
+            result.getSummary(),
+            htmlPath.toAbsolutePath()
+        ));
+    }
+
+    private void attachDiff(String html, String title) {
+        if (scenario == null) {
+            return;
+        }
+        scenario.attach(
+            html.getBytes(StandardCharsets.UTF_8),
+            "text/html",
+            "Data diff: " + title
+        );
+        scenario.log("Data mismatch detected - see attached HTML diff '" + title + "'.");
+    }
+
+    private String buildReportTitle() {
+        String base = currentScenarioName();
+        String timestamp = LocalDateTime.now().format(TIMESTAMP);
+        return base + " [" + timestamp + "]";
+    }
+
+    private String currentScenarioName() {
+        if (scenario != null && scenario.getName() != null && !scenario.getName().isBlank()) {
+            return scenario.getName();
+        }
+        return sourceName == null ? "data-diff" : sourceName;
+    }
+
+    private String sanitize(String value) {
+        return value.replaceAll("[^A-Za-z0-9._-]+", "_");
     }
 
     /**
