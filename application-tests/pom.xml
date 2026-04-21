@@ -42,10 +42,11 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Cucumber HTML / Extent report adapter for beautiful reports -->
+        <!-- Masterthought cucumber-reporting: beautiful BDD-native HTML reports
+             generated from Cucumber's JSON output -->
         <dependency>
-            <groupId>tech.grasshopper</groupId>
-            <artifactId>extentreports-cucumber7-adapter</artifactId>
+            <groupId>net.masterthought</groupId>
+            <artifactId>cucumber-reporting</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

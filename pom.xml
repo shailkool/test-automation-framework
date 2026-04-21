@@ -37,7 +37,7 @@
         <apache-poi.version>5.2.5</apache-poi.version>
         <opencsv.version>5.9</opencsv.version>
         <cucumber.version>7.18.0</cucumber.version>
-        <extent-cucumber-adapter.version>1.14.0</extent-cucumber-adapter.version>
+        <cucumber-reporting.version>5.8.4</cucumber-reporting.version>
         
         <!-- Database Driver Versions -->
         <oracle.driver.version>23.3.0.23.09</oracle.driver.version>
@@ -142,9 +142,9 @@
                 <version>${cucumber.version}</version>
             </dependency>
             <dependency>
-                <groupId>tech.grasshopper</groupId>
-                <artifactId>extentreports-cucumber7-adapter</artifactId>
-                <version>${extent-cucumber-adapter.version}</version>
+                <groupId>net.masterthought</groupId>
+                <artifactId>cucumber-reporting</artifactId>
+                <version>${cucumber-reporting.version}</version>
             </dependency>
 
             <!-- Database Drivers -->
