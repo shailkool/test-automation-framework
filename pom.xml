@@ -36,6 +36,7 @@
         <commons-dbcp2.version>2.14.0</commons-dbcp2.version>
         <apache-poi.version>5.2.5</apache-poi.version>
         <opencsv.version>5.9</opencsv.version>
+        <cucumber.version>7.18.0</cucumber.version>
         
         <!-- Database Driver Versions -->
         <oracle.driver.version>23.3.0.23.09</oracle.driver.version>
@@ -126,6 +127,18 @@
                 <groupId>com.opencsv</groupId>
                 <artifactId>opencsv</artifactId>
                 <version>${opencsv.version}</version>
+            </dependency>
+
+            <!-- Cucumber / Gherkin BDD -->
+            <dependency>
+                <groupId>io.cucumber</groupId>
+                <artifactId>cucumber-java</artifactId>
+                <version>${cucumber.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.cucumber</groupId>
+                <artifactId>cucumber-testng</artifactId>
+                <version>${cucumber.version}</version>
             </dependency>
 
             <!-- Database Drivers -->
