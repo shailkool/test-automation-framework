@@ -42,10 +42,23 @@ public class DiffHtmlReportGenerator {
     }
 
     /**
-     * Render the diff to an HTML string using the supplied page title and
-     * old/new labels for the file-metadata strip.
+     * Render the diff using plain old/new label strings &mdash; used by
+     * callers that don't have a real file on disk (e.g. Cucumber steps).
      */
     public static String generateHtml(DataDiff diff, String reportTitle, String oldLabel, String newLabel) {
+        return generateHtml(diff, reportTitle,
+            DiffSideInfo.label(oldLabel),
+            DiffSideInfo.label(newLabel));
+    }
+
+    /**
+     * Render the diff using rich per-side metadata (path, creation time,
+     * byte size, row count).
+     */
+    public static String generateHtml(DataDiff diff,
+                                      String reportTitle,
+                                      DiffSideInfo oldSide,
+                                      DiffSideInfo newSide) {
         DiffSummary summary = diff.getSummary();
         int changed = summary.getModifiedCount();
         int added = summary.getAddedCount();
@@ -70,7 +83,7 @@ public class DiffHtmlReportGenerator {
 
         appendTitle(html, reportTitle, oldCount, newCount, matchPct);
         appendSummaryCards(html, changed, added, removed, unchanged);
-        appendMetaStrip(html, oldLabel, newLabel, diff.getKeyFields());
+        appendMetaStrip(html, oldSide, newSide, diff.getKeyFields());
         appendToolbar(html, columns, changed, added, removed, unchanged);
         appendTable(html, rows, columns);
 
@@ -133,25 +146,63 @@ public class DiffHtmlReportGenerator {
         );
     }
 
-    private static void appendMetaStrip(StringBuilder html, String oldLabel, String newLabel, List<String> keyFields) {
+    private static void appendMetaStrip(StringBuilder html,
+                                        DiffSideInfo oldSide,
+                                        DiffSideInfo newSide,
+                                        List<String> keyFields) {
         String keys = (keyFields == null || keyFields.isEmpty())
             ? "(none)"
             : String.join(", ", keyFields);
+        String generated = LocalDateTime.now()
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         html.append("<div class='meta'>\n");
-        html.append("  <span class='pill'><span class='glyph'>&#x1F4C4;</span><span class='label'>Old</span>")
-            .append("<span class='value'>").append(escapeHtml(oldLabel)).append("</span>")
-            .append("<button class='copy' data-value='").append(escapeAttr(oldLabel)).append("'>Copy</button></span>\n");
-        html.append("  <span class='pill'><span class='glyph'>&#x1F4C4;</span><span class='label'>New</span>")
-            .append("<span class='value'>").append(escapeHtml(newLabel)).append("</span>")
-            .append("<button class='copy' data-value='").append(escapeAttr(newLabel)).append("'>Copy</button></span>\n");
-        html.append("  <span class='pill'><span class='glyph'>&#x1F511;</span><span class='label'>Keys</span>")
+        appendSideLine(html, "Old", "side-old", oldSide);
+        appendSideLine(html, "New", "side-new", newSide);
+        html.append("  <div class='meta-footer'>\n");
+        html.append("    <span class='pill'><span class='glyph'>&#x1F511;</span>")
+            .append("<span class='label'>Keys</span>")
             .append("<span class='value'>").append(escapeHtml(keys)).append("</span></span>\n");
-        html.append("  <span class='pill'><span class='glyph'>&#x1F552;</span><span class='label'>Generated</span>")
-            .append("<span class='value'>")
-            .append(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
-            .append("</span></span>\n");
+        html.append("    <span class='pill'><span class='glyph'>&#x1F552;</span>")
+            .append("<span class='label'>Generated</span>")
+            .append("<span class='value'>").append(escapeHtml(generated)).append("</span></span>\n");
+        html.append("  </div>\n");
         html.append("</div>\n");
+    }
+
+    private static void appendSideLine(StringBuilder html, String sideLabel, String sideClass, DiffSideInfo info) {
+        String label = info == null ? "" : info.getLabel();
+        String copyTarget = (info != null && info.hasPath()) ? info.getPath() : label;
+
+        html.append("  <div class='file-line ").append(sideClass).append("'>\n");
+        html.append("    <span class='side-tag'><span class='glyph'>&#x1F4C4;</span>")
+            .append("<span class='tag'>").append(sideLabel).append("</span></span>\n");
+        html.append("    <div class='file-info'>\n");
+        if (info != null && info.hasPath()) {
+            html.append("      <div class='file-path'>").append(escapeHtml(info.getPath())).append("</div>\n");
+        } else {
+            html.append("      <div class='file-path'>").append(escapeHtml(label)).append("</div>\n");
+        }
+        if (info != null && info.hasDetails() && (info.hasCreated() || info.hasSize() || info.hasRowCount())) {
+            html.append("      <div class='file-stats'>\n");
+            if (info.hasCreated()) {
+                html.append("        <span class='stat'><span class='g'>&#x1F552;</span>created ")
+                    .append(escapeHtml(info.getCreatedAt())).append("</span>\n");
+            }
+            if (info.hasSize()) {
+                html.append("        <span class='stat'><span class='g'>&#x1F4E6;</span>")
+                    .append(escapeHtml(info.getHumanSize())).append("</span>\n");
+            }
+            if (info.hasRowCount()) {
+                long rc = info.getRowCount();
+                html.append("        <span class='stat'><span class='g'>&#x2261;</span>")
+                    .append(rc).append(" row").append(rc == 1 ? "" : "s").append("</span>\n");
+            }
+            html.append("      </div>\n");
+        }
+        html.append("    </div>\n");
+        html.append("    <button class='copy' data-value='").append(escapeAttr(copyTarget)).append("'>Copy</button>\n");
+        html.append("  </div>\n");
     }
 
     private static void appendToolbar(StringBuilder html,
@@ -466,20 +517,55 @@ public class DiffHtmlReportGenerator {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: var(--radius-md);
-            padding: 12px 18px;
+            padding: 6px 18px;
             display: flex;
-            flex-wrap: wrap;
-            gap: 28px;
-            align-items: center;
+            flex-direction: column;
             margin-bottom: 18px;
             font-size: 13px;
             color: var(--text);
             box-shadow: var(--shadow-sm);
           }
-          .meta .pill { display: inline-flex; align-items: center; gap: 8px; }
-          .meta .glyph { font-size: 14px; }
-          .meta .label { font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; font-size: 11px; }
-          .meta .value { color: #0f172a; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+          .meta .file-line {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+          }
+          .meta .file-line.side-new { border-bottom: 1px solid var(--border); }
+          .meta .side-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 72px;
+            padding-top: 2px;
+          }
+          .meta .side-tag .tag {
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-size: 11px;
+          }
+          .meta .side-tag .glyph { font-size: 14px; }
+          .meta .file-line.side-old .side-tag .tag { color: var(--removed); }
+          .meta .file-line.side-new .side-tag .tag { color: var(--added); }
+          .meta .file-info { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+          .meta .file-path {
+            color: #0f172a;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 13px;
+            word-break: break-all;
+          }
+          .meta .file-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            color: var(--muted);
+            font-size: 12px;
+          }
+          .meta .file-stats .stat { display: inline-flex; align-items: center; gap: 6px; }
+          .meta .file-stats .g { font-size: 13px; color: var(--muted); }
           .meta button.copy {
             padding: 3px 10px;
             border-radius: var(--radius-sm);
@@ -489,8 +575,20 @@ public class DiffHtmlReportGenerator {
             font-size: 12px;
             color: var(--muted);
             transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+            align-self: center;
           }
           .meta button.copy:hover { background: var(--primary-soft); border-color: var(--primary); color: var(--primary); }
+          .meta .meta-footer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 28px;
+            align-items: center;
+            padding: 12px 0;
+          }
+          .meta .pill { display: inline-flex; align-items: center; gap: 8px; }
+          .meta .glyph { font-size: 14px; }
+          .meta .label { font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; font-size: 11px; }
+          .meta .value { color: #0f172a; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 
           .toolbar {
             display: flex;
@@ -588,9 +686,7 @@ public class DiffHtmlReportGenerator {
             white-space: nowrap;
             position: sticky;
             top: 0;
-            font-size: 12px;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
+            font-size: 13px;
             z-index: 1;
           }
           tbody td {

@@ -94,11 +94,14 @@ public final class DiffCli {
         for (String f : ignoreFields) db.ignoreField(f);
         DiffResult result = db.build().compare(oldData, newData);
 
+        DiffSideInfo oldSide = DiffSideInfo.forFile(oldFile, oldData.size());
+        DiffSideInfo newSide = DiffSideInfo.forFile(newFile, newData.size());
+
         new DiffReportGenerator().saveReport(
             result,
             title,
-            oldFile.toString(),
-            newFile.toString(),
+            oldSide,
+            newSide,
             outPath.toString()
         );
 

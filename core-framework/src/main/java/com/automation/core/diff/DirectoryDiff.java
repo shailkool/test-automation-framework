@@ -119,7 +119,9 @@ public final class DirectoryDiff {
 
             String reportPath = null;
             if (perFileReportDir != null && status == FileStatus.DIFFERENT) {
-                reportPath = renderDetail(name, oldFile.toString(), newFile.toString(), result);
+                DiffSideInfo oldSide = DiffSideInfo.forFile(oldFile, oldData.size());
+                DiffSideInfo newSide = DiffSideInfo.forFile(newFile, newData.size());
+                reportPath = renderDetail(name, oldSide, newSide, result);
             }
 
             return FileDiffResult.builder()
@@ -144,11 +146,11 @@ public final class DirectoryDiff {
         }
     }
 
-    private String renderDetail(String name, String oldLabel, String newLabel, DiffResult result) {
+    private String renderDetail(String name, DiffSideInfo oldSide, DiffSideInfo newSide, DiffResult result) {
         String title = (reportTitle == null || reportTitle.isBlank()) ? name : reportTitle + " / " + name;
         String fileName = sanitize(name) + ".html";
         Path dest = perFileReportDir.resolve(fileName);
-        new DiffReportGenerator().saveReport(result, title, oldLabel, newLabel, dest.toString());
+        new DiffReportGenerator().saveReport(result, title, oldSide, newSide, dest.toString());
         return dest.toString();
     }
 

@@ -32,6 +32,21 @@ public class DiffReportGenerator {
                            String oldLabel,
                            String newLabel,
                            String outputPath) {
+        saveReport(result, title,
+            DiffSideInfo.label(oldLabel),
+            DiffSideInfo.label(newLabel),
+            outputPath);
+    }
+
+    /**
+     * Render {@code result} using rich per-side metadata and write the
+     * resulting HTML to {@code outputPath}.
+     */
+    public void saveReport(DiffResult result,
+                           String title,
+                           DiffSideInfo oldSide,
+                           DiffSideInfo newSide,
+                           String outputPath) {
         if (result == null) {
             throw new IllegalArgumentException("DiffResult must not be null");
         }
@@ -44,8 +59,8 @@ public class DiffReportGenerator {
         String html = DiffHtmlReportGenerator.generateHtml(
             result.getDataDiff(),
             title,
-            oldLabel,
-            newLabel
+            oldSide,
+            newSide
         );
 
         try (FileWriter writer = new FileWriter(outputPath)) {
