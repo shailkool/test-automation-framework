@@ -166,7 +166,8 @@ public class RetryValidator {
                 
                 if (matched) {
                     long elapsedTime = System.currentTimeMillis() - startTime;
-                    log.info("String contains match found on attempt {}/{}", attemptNumber, iterations);
+                    log.info("String contains match found on attempt {}/{} after {}ms", 
+                        attemptNumber, iterations, elapsedTime);
                     ExtentReportManager.logPass(
                         String.format("String contains validation passed on attempt %d/%d", 
                             attemptNumber, iterations));

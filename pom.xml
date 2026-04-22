@@ -36,6 +36,8 @@
         <commons-dbcp2.version>2.14.0</commons-dbcp2.version>
         <apache-poi.version>5.2.5</apache-poi.version>
         <opencsv.version>5.9</opencsv.version>
+        <cucumber.version>7.18.0</cucumber.version>
+        <cucumber-reporting.version>5.8.4</cucumber-reporting.version>
         
         <!-- Database Driver Versions -->
         <oracle.driver.version>23.3.0.23.09</oracle.driver.version>
@@ -43,6 +45,7 @@
         <postgresql.driver.version>42.7.1</postgresql.driver.version>
         <mysql.driver.version>8.2.0</mysql.driver.version>
         <hikaricp.version>5.1.0</hikaricp.version>
+        <allure.version>2.27.0</allure.version>
     </properties>
 
     <dependencyManagement>
@@ -128,6 +131,23 @@
                 <version>${opencsv.version}</version>
             </dependency>
 
+            <!-- Cucumber / Gherkin BDD -->
+            <dependency>
+                <groupId>io.cucumber</groupId>
+                <artifactId>cucumber-java</artifactId>
+                <version>${cucumber.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.cucumber</groupId>
+                <artifactId>cucumber-testng</artifactId>
+                <version>${cucumber.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.masterthought</groupId>
+                <artifactId>cucumber-reporting</artifactId>
+                <version>${cucumber-reporting.version}</version>
+            </dependency>
+
             <!-- Database Drivers -->
             <dependency>
                 <groupId>com.oracle.database.jdbc</groupId>
@@ -150,11 +170,17 @@
                 <version>${mysql.driver.version}</version>
             </dependency>
 
-            <!-- Connection Pool -->
             <dependency>
                 <groupId>com.zaxxer</groupId>
                 <artifactId>HikariCP</artifactId>
                 <version>${hikaricp.version}</version>
+            </dependency>
+
+            <!-- Allure Reporting -->
+            <dependency>
+                <groupId>io.qameta.allure</groupId>
+                <artifactId>allure-testng</artifactId>
+                <version>${allure.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -1,0 +1,3 @@
+column,operator,value
+age,>,25
+status,==,active

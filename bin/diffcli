@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Thin wrapper around the DiffCli uber-jar.
+#
+# Usage:
+#   ./bin/diffcli file --old a.csv --new b.csv --keys id --out diff.html
+#   ./bin/diffcli dir  --old-dir expected/ --new-dir actual/ --keys id --out-dir reports/
+#
+# Builds the shaded jar on first use (or after mvn clean). Re-run with
+# DIFFCLI_REBUILD=1 to force a rebuild.
+
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+JAR_DIR="$REPO_ROOT/core-framework/target"
+JAR="$JAR_DIR/core-framework-1.0.0-cli.jar"
+
+if [[ ! -f "$JAR" || "${DIFFCLI_REBUILD:-0}" == "1" ]]; then
+  echo "[diffcli] Building $JAR ..." >&2
+  (cd "$REPO_ROOT" && mvn -q -pl core-framework -am -DskipTests package)
+fi
+
+exec java -jar "$JAR" "$@"

@@ -7,7 +7,6 @@ import lombok.extern.log4j.Log4j2;
 
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Base page class with common Playwright operations
@@ -77,7 +76,7 @@ public class BasePage {
     
     public void type(String selector, String text) {
         log.debug("Typing into element {}: {}", selector, text);
-        page.locator(selector).type(text);
+        page.locator(selector).pressSequentially(text);
     }
     
     public void selectOption(String selector, String value) {
