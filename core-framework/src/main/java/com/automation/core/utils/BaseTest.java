@@ -1,6 +1,7 @@
 package com.automation.core.utils;
 
 import com.automation.core.database.DatabaseManager;
+import com.automation.core.messaging.MessagingManager;
 import com.automation.core.playwright.PlaywrightManager;
 import com.automation.core.reporting.ExtentReportManager;
 import lombok.extern.log4j.Log4j2;
@@ -70,7 +71,10 @@ public class BaseTest {
         
         // Close all database connections
         DatabaseManager.closeAll();
-        
+
+        // Close all messaging clients (Kafka, JMS/MQ)
+        MessagingManager.closeAll();
+
         // Flush extent reports
         ExtentReportManager.flushReports();
     }

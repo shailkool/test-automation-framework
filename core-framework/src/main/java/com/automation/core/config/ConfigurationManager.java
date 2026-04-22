@@ -143,4 +143,22 @@ public class ConfigurationManager {
     public String getDbPassword() {
         return getProperty("db.password");
     }
+
+    // Kafka configuration
+    public String getKafkaBootstrapServers() {
+        return getProperty("kafka.bootstrap.servers");
+    }
+
+    public String getKafkaGroupId() {
+        return getProperty("kafka.group.id");
+    }
+
+    // JMS / MQ configuration
+    public String getJmsProvider() {
+        return getProperty("jms.provider");
+    }
+
+    public String getJmsBrokerUrl() {
+        return getProperty("jms.broker.url");
+    }
 }

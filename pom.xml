@@ -46,6 +46,12 @@
         <mysql.driver.version>8.2.0</mysql.driver.version>
         <hikaricp.version>5.1.0</hikaricp.version>
         <allure.version>2.27.0</allure.version>
+
+        <!-- Messaging Driver Versions -->
+        <kafka.clients.version>3.7.0</kafka.clients.version>
+        <javax.jms.version>2.0.1</javax.jms.version>
+        <activemq.client.version>5.18.3</activemq.client.version>
+        <ibm.mq.version>9.3.5.0</ibm.mq.version>
     </properties>
 
     <dependencyManagement>
@@ -181,6 +187,34 @@
                 <groupId>io.qameta.allure</groupId>
                 <artifactId>allure-testng</artifactId>
                 <version>${allure.version}</version>
+            </dependency>
+
+            <!-- Messaging: Apache Kafka -->
+            <dependency>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka-clients</artifactId>
+                <version>${kafka.clients.version}</version>
+            </dependency>
+
+            <!-- Messaging: JMS API (javax.jms 2.0.1 — broadest broker client support) -->
+            <dependency>
+                <groupId>javax.jms</groupId>
+                <artifactId>javax.jms-api</artifactId>
+                <version>${javax.jms.version}</version>
+            </dependency>
+
+            <!-- Messaging: Apache ActiveMQ (Classic, javax.jms) -->
+            <dependency>
+                <groupId>org.apache.activemq</groupId>
+                <artifactId>activemq-client</artifactId>
+                <version>${activemq.client.version}</version>
+            </dependency>
+
+            <!-- Messaging: IBM MQ -->
+            <dependency>
+                <groupId>com.ibm.mq</groupId>
+                <artifactId>com.ibm.mq.allclient</artifactId>
+                <version>${ibm.mq.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
