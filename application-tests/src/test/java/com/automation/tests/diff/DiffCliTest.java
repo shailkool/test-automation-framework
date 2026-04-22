@@ -7,6 +7,7 @@ import org.testng.annotations.Test;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -137,6 +138,71 @@ public class DiffCliTest {
             quietStream(), quietStream()
         );
         Assert.assertEquals(code, 2);
+    }
+
+    @Test(description = "CSVs saved with a UTF-8 BOM still match on the first column")
+    public void bomStrippedFromFirstHeader() throws IOException {
+        Path tmp = Files.createTempDirectory("cli-bom-");
+        Path oldFile = tmp.resolve("old.csv");
+        Path newFile = tmp.resolve("new.csv");
+        Path out = tmp.resolve("report.html");
+
+        String oldBody = "﻿Word,Root or Prefix,Origin Language,Root Meaning,Grammatical Category\n"
+            + "benevolent,bene-,Latin,good / well,Adjective\n"
+            + "benedict,bene-,Latin,good / well,Noun\n"
+            + "benediction,bene-,Latin,good / well,Noun\n"
+            + "benign,bene-,Latin,good / well,Adjective\n";
+        String newBody = "﻿Word,Root or Prefix,Origin Language,Root Meaning,Grammatical Category\n"
+            + "benign,bene-,Latinx,good / well,Noun\n"
+            + "benignsd,bene-,Latin,good / well,Adjective\n";
+
+        Files.write(oldFile, oldBody.getBytes(StandardCharsets.UTF_8));
+        Files.write(newFile, newBody.getBytes(StandardCharsets.UTF_8));
+
+        int code = DiffCli.run(
+            new String[]{"file",
+                "--old", oldFile.toString(),
+                "--new", newFile.toString(),
+                "--keys", "Word",
+                "--out", out.toString()},
+            quietStream(), quietStream()
+        );
+
+        Assert.assertEquals(code, 1, "differences should exit 1");
+        String html = Files.readString(out);
+        Assert.assertTrue(html.contains("Generated"), "meta strip carries a Generated timestamp");
+        // benevolent, benedict, benediction are in old but not new -> three removed rows rendered
+        Assert.assertTrue(html.contains("benevolent") && html.contains("benedict")
+                          && html.contains("benediction"),
+            "all three old-only rows appear in the detail report");
+        Assert.assertTrue(html.contains("benignsd"), "added row rendered");
+        // benign appears on both sides with two changed fields - old pill carries 'Latin' / new 'Latinx'
+        Assert.assertTrue(html.contains("Latinx"), "modified row shows the new value");
+    }
+
+    @Test(description = "Misspelt key column returns exit code 2 with a helpful message")
+    public void missingKeyColumn_failsWithHelpfulError() throws IOException {
+        Path tmp = Files.createTempDirectory("cli-missingkey-");
+        Path oldFile = tmp.resolve("a.csv");
+        Path newFile = tmp.resolve("b.csv");
+        Path out = tmp.resolve("report.html");
+        writeCsv(oldFile, List.of("id,name", "1,Alice"));
+        writeCsv(newFile, List.of("id,name", "1,Alice"));
+
+        ByteArrayOutputStream errBuf = new ByteArrayOutputStream();
+        int code = DiffCli.run(
+            new String[]{"file",
+                "--old", oldFile.toString(),
+                "--new", newFile.toString(),
+                "--keys", "ID",   // uppercase, not present in header
+                "--out", out.toString()},
+            quietStream(), new PrintStream(errBuf)
+        );
+
+        Assert.assertEquals(code, 2);
+        String err = errBuf.toString();
+        Assert.assertTrue(err.contains("[ID]"), "error message names the missing key");
+        Assert.assertTrue(err.contains("Available columns"), "error message shows actual headers");
     }
 
     @Test(description = "no args prints usage and returns 0")

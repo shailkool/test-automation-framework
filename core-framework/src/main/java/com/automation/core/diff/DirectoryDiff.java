@@ -1,10 +1,7 @@
 package com.automation.core.diff;
 
-import com.opencsv.CSVReader;
-import com.opencsv.exceptions.CsvException;
 import lombok.extern.log4j.Log4j2;
 
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -12,7 +9,6 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -106,8 +102,10 @@ public final class DirectoryDiff {
 
     private FileDiffResult comparePair(String name, Path oldFile, Path newFile) {
         try {
-            List<Map<String, String>> oldData = loadCsv(oldFile);
-            List<Map<String, String>> newData = loadCsv(newFile);
+            List<Map<String, String>> oldData = CsvLoader.load(oldFile);
+            List<Map<String, String>> newData = CsvLoader.load(newFile);
+            CsvLoader.ensureKeyColumnsPresent(oldFile, keyFields, oldData);
+            CsvLoader.ensureKeyColumnsPresent(newFile, keyFields, newData);
 
             DataDiff.Builder db = DataDiff.builder()
                 .keyFields(keyFields)
@@ -176,7 +174,7 @@ public final class DirectoryDiff {
 
     private long safeRowCount(Path file) {
         try {
-            return loadCsv(file).size();
+            return CsvLoader.load(file).size();
         } catch (RuntimeException e) {
             return 0;
         }
@@ -204,26 +202,6 @@ public final class DirectoryDiff {
             throw new RuntimeException("Failed to list " + dir, e);
         }
         return names;
-    }
-
-    private static List<Map<String, String>> loadCsv(Path file) {
-        try (CSVReader reader = new CSVReader(new FileReader(file.toFile()))) {
-            List<String[]> all = reader.readAll();
-            if (all.isEmpty()) return List.of();
-            String[] headers = all.get(0);
-            List<Map<String, String>> rows = new ArrayList<>(all.size() - 1);
-            for (int i = 1; i < all.size(); i++) {
-                String[] cells = all.get(i);
-                Map<String, String> row = new LinkedHashMap<>();
-                for (int c = 0; c < headers.length; c++) {
-                    row.put(headers[c], c < cells.length ? cells[c] : "");
-                }
-                rows.add(row);
-            }
-            return rows;
-        } catch (IOException | CsvException e) {
-            throw new RuntimeException("Failed to load CSV " + file + ": " + e.getMessage(), e);
-        }
     }
 
     static String sanitize(String value) {

@@ -1,11 +1,7 @@
 package com.automation.core.diff;
 
-import com.opencsv.CSVReader;
-import com.opencsv.exceptions.CsvException;
 import lombok.extern.log4j.Log4j2;
 
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -89,8 +85,10 @@ public final class DiffCli {
         List<String> ignoreFields = splitCsv(opts.get("ignore"));
         String title = opts.getOrDefault("title", defaultTitle(oldFile, newFile));
 
-        List<Map<String, String>> oldData = loadCsv(oldFile);
-        List<Map<String, String>> newData = loadCsv(newFile);
+        List<Map<String, String>> oldData = CsvLoader.load(oldFile);
+        List<Map<String, String>> newData = CsvLoader.load(newFile);
+        CsvLoader.ensureKeyColumnsPresent(oldFile, keys, oldData);
+        CsvLoader.ensureKeyColumnsPresent(newFile, keys, newData);
 
         DataDiff.Builder db = DataDiff.builder().keyFields(keys).ignoreCase(ignoreCase);
         for (String f : ignoreFields) db.ignoreField(f);
@@ -211,26 +209,6 @@ public final class DiffCli {
         String oldName = oldFile.getFileName().toString();
         String newName = newFile.getFileName().toString();
         return oldName.equals(newName) ? oldName : oldName + " vs " + newName;
-    }
-
-    private static List<Map<String, String>> loadCsv(Path file) {
-        try (CSVReader reader = new CSVReader(new FileReader(file.toFile()))) {
-            List<String[]> all = reader.readAll();
-            if (all.isEmpty()) return List.of();
-            String[] headers = all.get(0);
-            List<Map<String, String>> rows = new ArrayList<>(all.size() - 1);
-            for (int i = 1; i < all.size(); i++) {
-                String[] cells = all.get(i);
-                Map<String, String> row = new LinkedHashMap<>();
-                for (int c = 0; c < headers.length; c++) {
-                    row.put(headers[c], c < cells.length ? cells[c] : "");
-                }
-                rows.add(row);
-            }
-            return rows;
-        } catch (IOException | CsvException e) {
-            throw new RuntimeException("Failed to load CSV " + file + ": " + e.getMessage(), e);
-        }
     }
 
     private static void printUsage(PrintStream s) {

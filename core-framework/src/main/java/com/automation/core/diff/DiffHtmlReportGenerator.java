@@ -4,6 +4,8 @@ import lombok.extern.log4j.Log4j2;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -145,6 +147,10 @@ public class DiffHtmlReportGenerator {
             .append("<button class='copy' data-value='").append(escapeAttr(newLabel)).append("'>Copy</button></span>\n");
         html.append("  <span class='pill'><span class='glyph'>&#x1F511;</span><span class='label'>Keys</span>")
             .append("<span class='value'>").append(escapeHtml(keys)).append("</span></span>\n");
+        html.append("  <span class='pill'><span class='glyph'>&#x1F552;</span><span class='label'>Generated</span>")
+            .append("<span class='value'>")
+            .append(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+            .append("</span></span>\n");
         html.append("</div>\n");
     }
 
