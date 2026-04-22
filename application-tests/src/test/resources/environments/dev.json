@@ -1,0 +1,91 @@
+{
+  "name": "dev",
+  "description": "Development environment - lightweight local stubs and public sites",
+  "databases": {
+    "contentDb": {
+      "type": "postgresql",
+      "url": "jdbc:postgresql://dev-db.internal:5432/content",
+      "username": "content_rw",
+      "password": "dev-content-pwd",
+      "schema": "public",
+      "properties": {
+        "poolSize": 5,
+        "readOnly": false
+      }
+    },
+    "analyticsDb": {
+      "type": "mysql",
+      "url": "jdbc:mysql://dev-db.internal:3306/analytics",
+      "username": "analytics_ro",
+      "password": "dev-analytics-pwd",
+      "schema": "analytics",
+      "properties": {
+        "poolSize": 3,
+        "readOnly": true
+      }
+    }
+  },
+  "messageQueues": {
+    "pageViewEvents": {
+      "provider": "kafka",
+      "brokerUrl": "dev-kafka.internal:9092",
+      "destination": "pageview.events.v1",
+      "destinationType": "topic",
+      "properties": {
+        "groupId": "dev-qa-suite",
+        "autoOffsetReset": "earliest"
+      }
+    },
+    "auditQueue": {
+      "provider": "activemq",
+      "brokerUrl": "tcp://dev-activemq.internal:61616",
+      "destination": "audit.requests",
+      "destinationType": "queue",
+      "username": "audit",
+      "password": "dev-audit-pwd"
+    }
+  },
+  "websites": {
+    "BBC": {
+      "baseUrl": "https://www.bbc.co.uk",
+      "description": "BBC UK homepage (dev uses the live site in read-only mode)",
+      "users": {
+        "reader": {
+          "username": "dev.reader@example.com",
+          "password": "dev-reader-pwd",
+          "role": "READER"
+        },
+        "editor": {
+          "username": "dev.editor@example.com",
+          "password": "dev-editor-pwd",
+          "role": "EDITOR"
+        }
+      },
+      "properties": {
+        "defaultLandingPath": "/",
+        "newsPath": "/news",
+        "sportPath": "/sport"
+      }
+    },
+    "Yahoo": {
+      "baseUrl": "https://www.yahoo.com",
+      "description": "Yahoo global homepage",
+      "users": {
+        "guest": {
+          "username": "dev.guest@example.com",
+          "password": "dev-guest-pwd",
+          "role": "GUEST"
+        },
+        "member": {
+          "username": "dev.member@example.com",
+          "password": "dev-member-pwd",
+          "role": "MEMBER"
+        }
+      },
+      "properties": {
+        "financePath": "/finance",
+        "sportsPath": "/sports"
+      }
+    }
+  }
+}

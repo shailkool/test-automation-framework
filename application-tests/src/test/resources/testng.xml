@@ -34,6 +34,13 @@
         </classes>
     </test>
 
+    <!-- Environment Configuration Tests -->
+    <test name="Environment Configuration Tests" preserve-order="true">
+        <classes>
+            <class name="com.automation.tests.environment.EnvironmentContextTest"/>
+        </classes>
+    </test>
+
     <!--
       Messaging Tests (Kafka + JMS/MQ) require live brokers, so they are not
       registered in the default suite. To run them point Surefire at a
