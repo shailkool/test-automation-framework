@@ -233,7 +233,41 @@ public class DataDiffTest extends BaseTest {
         Assert.assertEquals(diff.getModifiedRows().size(), 2);
         ExtentReportManager.logPass("Composite key diff completed");
     }
-    
+
+    @Test(description = "Builder-style composite key with ignoreCase and ignoreField")
+    public void testCompositeKeyViaBuilder() {
+        ExtentReportManager.assignCategory("DataDiff", "CompositeKey", "Builder");
+
+        List<Map<String, String>> expected = new ArrayList<>();
+        expected.add(createPersonRow("John",  "Doe",   "30", "USA"));
+        expected.add(createPersonRow("Jane",  "Smith", "25", "UK"));
+        expected.add(createPersonRow("Alice", "Jones", "40", "IE"));
+
+        List<Map<String, String>> actual = new ArrayList<>();
+        // same composite-key person but mixed case in second key part - ignoreCase should match
+        actual.add(createPersonRow("John", "DOE",   "30", "USA"));
+        // same person with different Country - should be MODIFIED...
+        actual.add(createPersonRow("Jane", "Smith", "25", "Canada"));
+        // ...unless Country is in ignoreFields, in which case should be UNCHANGED
+        actual.add(createPersonRow("Bob",  "Brown", "55", "AU"));
+        // Alice missing -> DELETED, Bob new -> ADDED
+
+        DiffResult result = DataDiff.builder()
+            .keyFields("FirstName", "LastName")
+            .ignoreCase(true)
+            .ignoreField("Country")
+            .build()
+            .compare(expected, actual);
+
+        Assert.assertTrue(result.isIdentical() == false, "Composite diff should report differences");
+        Assert.assertEquals(result.getMatchedRows(),  2, "John and Jane should be unchanged (case + ignored field)");
+        Assert.assertEquals(result.getAddedRows(),    1, "Bob should be ADDED");
+        Assert.assertEquals(result.getDeletedRows(),  1, "Alice should be DELETED");
+        Assert.assertEquals(result.getModifiedRows(), 0, "Nothing modified once ignoreCase + ignoreField applied");
+
+        ExtentReportManager.logPass("Composite-key builder diff completed: " + result.getSummary());
+    }
+
     @Test(description = "Test with no differences")
     public void testNoDifferences() {
         ExtentReportManager.assignCategory("DataDiff", "NoDiff", "Identical");

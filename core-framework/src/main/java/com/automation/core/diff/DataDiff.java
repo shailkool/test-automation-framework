@@ -141,7 +141,8 @@ public class DataDiff {
             if (key.length() > 0) {
                 key.append("||");
             }
-            key.append(row.getOrDefault(keyField, ""));
+            String value = row.getOrDefault(keyField, "");
+            key.append(ignoreCase ? value.toLowerCase(java.util.Locale.ROOT) : value);
         }
         return key.toString();
     }
