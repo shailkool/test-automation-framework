@@ -33,5 +33,18 @@
             <class name="com.automation.tests.integration.UserEndToEndTest"/>
         </classes>
     </test>
-    
+
+    <!--
+      Messaging Tests (Kafka + JMS/MQ) require live brokers, so they are not
+      registered in the default suite. To run them point Surefire at a
+      dedicated suite file, or uncomment the block below.
+
+    <test name="Messaging Tests" preserve-order="true">
+        <classes>
+            <class name="com.automation.tests.messaging.KafkaMessagingTest"/>
+            <class name="com.automation.tests.messaging.JmsMessagingTest"/>
+        </classes>
+    </test>
+    -->
+
 </suite>
