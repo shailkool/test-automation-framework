@@ -49,6 +49,13 @@
             <artifactId>cucumber-reporting</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Allure TestNG Reporting -->
+        <dependency>
+            <groupId>io.qameta.allure</groupId>
+            <artifactId>allure-testng</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

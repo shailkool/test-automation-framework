@@ -6,6 +6,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.dbcp2.BasicDataSource;
 
 import java.sql.*;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -70,7 +71,7 @@ public class DatabaseManager {
             dataSource.setMaxTotal(10);
             dataSource.setMaxIdle(5);
             dataSource.setMinIdle(2);
-            dataSource.setMaxWaitMillis(10000);
+            dataSource.setMaxWait(Duration.ofMillis(10000));
             
             // Test connection
             try (Connection conn = dataSource.getConnection()) {
