@@ -124,13 +124,18 @@ final class MasterthoughtReportGenerator {
             RunProfile profile = ctx.getProfile();
             configuration.addClassifications("Run profile", ctx.getProfileName());
 
-            String channel = profile.resolveBrowserChannel();
-            String browser = profile.resolveBrowserEngine()
-                + (channel == null ? "" : " (" + channel + ")");
-            configuration.addClassifications("Browser", browser);
-            configuration.addClassifications("Headless", String.valueOf(profile.isHeadless()));
-            configuration.addClassifications("Screenshot mode",
-                profile.resolveScreenshotMode().name());
+            // Browser / Headless / Screenshot mode are only meaningful when
+            // the profile actually drives a browser; hide them for API- or
+            // data-only suites that don't configure one.
+            if (profile.hasBrowser()) {
+                String channel = profile.resolveBrowserChannel();
+                String browser = profile.resolveBrowserEngine()
+                    + (channel == null ? "" : " (" + channel + ")");
+                configuration.addClassifications("Browser", browser);
+                configuration.addClassifications("Headless", String.valueOf(profile.isHeadless()));
+                configuration.addClassifications("Screenshot mode",
+                    profile.resolveScreenshotMode().name());
+            }
 
             Path externalDir = ctx.getEnvironmentConfigDir();
             if (externalDir != null) {

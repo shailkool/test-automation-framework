@@ -82,6 +82,11 @@ public class RunProfile {
         return headless != null && headless;
     }
 
+    /** True when the profile explicitly configures a browser to drive. */
+    public boolean hasBrowser() {
+        return browser != null && !browser.isBlank();
+    }
+
     public int timeoutOrDefault(int defaultMillis) {
         return timeout == null || timeout <= 0 ? defaultMillis : timeout;
     }
