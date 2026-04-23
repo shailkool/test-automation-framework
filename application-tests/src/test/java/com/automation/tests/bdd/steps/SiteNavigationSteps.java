@@ -43,6 +43,27 @@ public class SiteNavigationSteps {
     public void beforeNavigationScenario(Scenario scenario) {
         this.scenario = scenario;
         this.journey.clear();
+
+        this.environment = EnvironmentContext.getInstance();
+        RunProfile profile = RunProfileContext.getInstance().getProfile();
+
+        String banner = String.format(
+            "Active environment : %s%n"
+                + "Active run profile : %s (browser=%s, channel=%s, headless=%s)%n"
+                + "Available websites : %s%n"
+                + "Available databases: %s%n"
+                + "Available MQs      : %s",
+            environment.getEnvironmentName(),
+            profile.getName(),
+            profile.resolveBrowserEngine(),
+            profile.resolveBrowserChannel(),
+            profile.isHeadless(),
+            environment.getWebsites().keySet(),
+            environment.getDatabases().keySet(),
+            environment.getMessageQueues().keySet());
+
+        log.info("\n{}", banner);
+        scenario.log(banner);
     }
 
     @After("@navigation")
@@ -51,18 +72,6 @@ public class SiteNavigationSteps {
             PlaywrightManager.closeBrowser();
         } catch (RuntimeException e) {
             log.warn("Browser cleanup failed: {}", e.getMessage());
-        }
-    }
-
-    @Given("the active environment configuration is loaded")
-    public void theActiveEnvironmentConfigurationIsLoaded() {
-        this.environment = EnvironmentContext.getInstance();
-        log.info("Scenario running against environment '{}' with {} website(s): {}",
-            environment.getEnvironmentName(),
-            environment.getWebsites().size(),
-            environment.getWebsites().keySet());
-        if (scenario != null) {
-            scenario.log("Active environment: " + environment.getEnvironmentName());
         }
     }
 
@@ -137,9 +146,6 @@ public class SiteNavigationSteps {
     }
 
     private void openSession(String siteName, String userKey) {
-        if (environment == null) {
-            theActiveEnvironmentConfigurationIsLoaded();
-        }
         this.activeSite = environment.getWebsite(siteName);
         this.activeSiteName = siteName;
         this.activeUser = userKey == null ? null : environment.getUser(siteName, userKey);

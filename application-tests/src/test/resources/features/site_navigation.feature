@@ -3,9 +3,10 @@ Feature: Site navigation journeys per environment
   As a test engineer
   I want to drive a browser against sites configured for the active environment
   So that the same feature file runs unchanged against dev, qa or uat2
-
-  Background:
-    Given the active environment configuration is loaded
+  # The active environment (-Denv=...) and run profile (-Dprofile=...) are
+  # loaded automatically by the @Before("@navigation") hook in
+  # SiteNavigationSteps; the hook also attaches a banner to every scenario
+  # so the report shows which env/profile was used.
 
   @smoke @bbc
   Scenario: Trace a reader's navigation across BBC sections
