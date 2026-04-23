@@ -16,6 +16,18 @@
     <name>Application Tests</name>
     <description>Application-specific test cases</description>
 
+    <!--
+      Defaults for the -D flags Surefire forwards to the JVM. Without these,
+      an unset -Dprofile=... would propagate the literal string "${profile}"
+      as the system property value rather than letting RunProfileContext
+      apply its own default.
+    -->
+    <properties>
+        <env>dev</env>
+        <profile>local</profile>
+        <cucumber.filter.tags>@smoke</cucumber.filter.tags>
+    </properties>
+
     <dependencies>
         <!-- Application Automation Layer -->
         <dependency>
@@ -69,6 +81,8 @@
                     </suiteXmlFiles>
                     <systemPropertyVariables>
                         <env>${env}</env>
+                        <profile>${profile}</profile>
+                        <cucumber.filter.tags>${cucumber.filter.tags}</cucumber.filter.tags>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

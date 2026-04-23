@@ -49,6 +49,21 @@
     </test>
 
     <!--
+      BDD / Cucumber Tests
+      Discovers every .feature file under src/test/resources/features and
+      executes only scenarios that match the active tag expression. Default
+      filter is @smoke (set in TaggedCucumberRunner). Override per-run with
+      -Dcucumber.filter.tags="<expression>", e.g.
+        -Dcucumber.filter.tags=@multi-site
+        -Dcucumber.filter.tags="@navigation and not @wip"
+    -->
+    <test name="BDD Tests" preserve-order="true">
+        <classes>
+            <class name="com.automation.tests.bdd.runner.TaggedCucumberRunner"/>
+        </classes>
+    </test>
+
+    <!--
       Messaging Tests (Kafka + JMS/MQ) require live brokers, so they are not
       registered in the default suite. To run them point Surefire at a
       dedicated suite file, or uncomment the block below.
