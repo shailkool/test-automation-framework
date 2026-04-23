@@ -1,0 +1,15 @@
+{
+  "name": "external-config",
+  "description": "Demo profile - env JSON lives on a shared mount outside this repo",
+  "browser": "edge",
+  "headless": true,
+  "timeout": 30000,
+  "environmentConfigDir": "/opt/secure-configs/environments",
+  "screenshotMode": "ON_FAILURE",
+  "outputDirs": {
+    "reports": "/var/test-runs/reports",
+    "logs": "/var/test-runs/logs",
+    "screenshots": "/var/test-runs/screenshots",
+    "artifacts": "/var/test-runs/artifacts"
+  }
+}

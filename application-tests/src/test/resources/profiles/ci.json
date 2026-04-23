@@ -1,0 +1,23 @@
+{
+  "name": "ci",
+  "description": "CI pipeline - headless Chromium, workspace-scoped artefact dirs",
+  "browser": "chromium",
+  "headless": true,
+  "timeout": 45000,
+  "viewport": {
+    "width": 1366,
+    "height": 768
+  },
+  "environmentConfigDir": null,
+  "screenshotMode": "ON_FAILURE",
+  "outputDirs": {
+    "reports": "${WORKSPACE:-/tmp/ci}/reports",
+    "logs": "${WORKSPACE:-/tmp/ci}/logs",
+    "screenshots": "${WORKSPACE:-/tmp/ci}/screenshots",
+    "artifacts": "${WORKSPACE:-/tmp/ci}/artifacts"
+  },
+  "properties": {
+    "retryCount": 2,
+    "parallelThreads": 4
+  }
+}

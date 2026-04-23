@@ -1,0 +1,115 @@
+{
+  "name": "qa",
+  "description": "QA environment - stable integration target for regression suites",
+  "databases": {
+    "contentDb": {
+      "type": "postgresql",
+      "url": "jdbc:postgresql://qa-db.internal:5432/content",
+      "username": "content_rw",
+      "password": "qa-content-pwd",
+      "schema": "public",
+      "properties": {
+        "poolSize": 10,
+        "readOnly": false
+      }
+    },
+    "analyticsDb": {
+      "type": "mysql",
+      "url": "jdbc:mysql://qa-db.internal:3306/analytics",
+      "username": "analytics_ro",
+      "password": "qa-analytics-pwd",
+      "schema": "analytics",
+      "properties": {
+        "poolSize": 5,
+        "readOnly": true
+      }
+    },
+    "archiveDb": {
+      "type": "oracle",
+      "url": "jdbc:oracle:thin:@qa-oracle.internal:1521:QAXE",
+      "username": "archive_ro",
+      "password": "qa-archive-pwd",
+      "schema": "ARCHIVE"
+    }
+  },
+  "messageQueues": {
+    "pageViewEvents": {
+      "provider": "kafka",
+      "brokerUrl": "qa-kafka.internal:9092",
+      "destination": "pageview.events.v1",
+      "destinationType": "topic",
+      "properties": {
+        "groupId": "qa-regression-suite",
+        "autoOffsetReset": "earliest"
+      }
+    },
+    "auditQueue": {
+      "provider": "activemq",
+      "brokerUrl": "tcp://qa-activemq.internal:61616",
+      "destination": "audit.requests",
+      "destinationType": "queue",
+      "username": "audit",
+      "password": "qa-audit-pwd"
+    },
+    "paymentQueue": {
+      "provider": "ibm_mq",
+      "brokerUrl": "qa-ibmmq.internal(1414)",
+      "destination": "PAYMENTS.IN",
+      "destinationType": "queue",
+      "username": "payments",
+      "password": "qa-payments-pwd",
+      "properties": {
+        "queueManager": "QA.QM1",
+        "channel": "APP.SVRCONN"
+      }
+    }
+  },
+  "websites": {
+    "BBC": {
+      "baseUrl": "https://www.bbc.co.uk",
+      "description": "BBC UK homepage under QA test users",
+      "users": {
+        "reader": {
+          "username": "qa.reader@example.com",
+          "password": "qa-reader-pwd",
+          "role": "READER"
+        },
+        "editor": {
+          "username": "qa.editor@example.com",
+          "password": "qa-editor-pwd",
+          "role": "EDITOR"
+        },
+        "admin": {
+          "username": "qa.admin@example.com",
+          "password": "qa-admin-pwd",
+          "role": "ADMIN"
+        }
+      },
+      "properties": {
+        "defaultLandingPath": "/",
+        "newsPath": "/news",
+        "sportPath": "/sport"
+      }
+    },
+    "Yahoo": {
+      "baseUrl": "https://www.yahoo.com",
+      "description": "Yahoo global homepage under QA test users",
+      "users": {
+        "guest": {
+          "username": "qa.guest@example.com",
+          "password": "qa-guest-pwd",
+          "role": "GUEST"
+        },
+        "member": {
+          "username": "qa.member@example.com",
+          "password": "qa-member-pwd",
+          "role": "MEMBER"
+        }
+      },
+      "properties": {
+        "financePath": "/finance",
+        "sportsPath": "/sports"
+      }
+    }
+  }
+}

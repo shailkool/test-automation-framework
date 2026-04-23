@@ -25,20 +25,34 @@ public class PlaywrightManager {
     }
     
     public static void initializeBrowser(BrowserEngine  browserEngine) {
+        initializeBrowser(browserEngine, null);
+    }
+
+    /**
+     * Launch Playwright with an explicit Chromium channel (e.g. {@code "chrome"}
+     * or {@code "msedge"}) so run profiles that ask for stock Chrome or Edge
+     * get the actual branded binary rather than bundled Chromium. The channel
+     * is ignored for Firefox / WebKit engines.
+     */
+    public static void initializeBrowser(BrowserEngine browserEngine, String channel) {
         try {
             // Create Playwright instance
             Playwright pw = Playwright.create();
             playwright.set(pw);
-            
+
             // Launch browser
             Browser.NewContextOptions contextOptions = new Browser.NewContextOptions()
                     .setViewportSize(1920, 1080)
                     .setAcceptDownloads(true);
-            
+
             BrowserType.LaunchOptions launchOptions = new BrowserType.LaunchOptions()
                     .setHeadless(config.isHeadless())
                     .setTimeout(config.getTimeout());
-            
+
+            if (channel != null && !channel.isBlank() && browserEngine == BrowserEngine.CHROMIUM) {
+                launchOptions.setChannel(channel);
+            }
+
             Browser br;
             switch (browserEngine) {
                 case CHROMIUM:
@@ -53,20 +67,20 @@ public class PlaywrightManager {
                 default:
                     br = pw.chromium().launch(launchOptions);
             }
-            
+
             browser.set(br);
-            
+
             // Create context
             BrowserContext ctx = br.newContext(contextOptions);
             context.set(ctx);
-            
+
             // Create page
             Page pg = ctx.newPage();
             pg.setDefaultTimeout(config.getTimeout());
             page.set(pg);
-            
-            log.info("Playwright browser initialized: {}", browserEngine);
-            
+
+            log.info("Playwright browser initialized: engine={}, channel={}", browserEngine, channel);
+
         } catch (Exception e) {
             log.error("Error initializing Playwright browser", e);
             throw e;

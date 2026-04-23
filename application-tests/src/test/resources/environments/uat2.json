@@ -1,0 +1,98 @@
+{
+  "name": "uat2",
+  "description": "UAT2 environment - second UAT slice used for parallel business acceptance",
+  "databases": {
+    "contentDb": {
+      "type": "mssql",
+      "url": "jdbc:sqlserver://uat2-db.internal:1433;databaseName=content;encrypt=true;trustServerCertificate=true",
+      "username": "content_rw",
+      "password": "uat2-content-pwd",
+      "schema": "dbo"
+    },
+    "analyticsDb": {
+      "type": "mysql",
+      "url": "jdbc:mysql://uat2-db.internal:3306/analytics",
+      "username": "analytics_ro",
+      "password": "uat2-analytics-pwd",
+      "schema": "analytics",
+      "properties": {
+        "poolSize": 5,
+        "readOnly": true
+      }
+    },
+    "archiveDb": {
+      "type": "oracle",
+      "url": "jdbc:oracle:thin:@uat2-oracle.internal:1521:UAT2XE",
+      "username": "archive_ro",
+      "password": "uat2-archive-pwd",
+      "schema": "ARCHIVE"
+    }
+  },
+  "messageQueues": {
+    "pageViewEvents": {
+      "provider": "kafka",
+      "brokerUrl": "uat2-kafka.internal:9092",
+      "destination": "pageview.events.v1",
+      "destinationType": "topic",
+      "properties": {
+        "groupId": "uat2-suite",
+        "autoOffsetReset": "latest"
+      }
+    },
+    "paymentQueue": {
+      "provider": "ibm_mq",
+      "brokerUrl": "uat2-ibmmq.internal(1414)",
+      "destination": "PAYMENTS.IN",
+      "destinationType": "queue",
+      "username": "payments",
+      "password": "uat2-payments-pwd",
+      "properties": {
+        "queueManager": "UAT2.QM1",
+        "channel": "APP.SVRCONN"
+      }
+    }
+  },
+  "websites": {
+    "BBC": {
+      "baseUrl": "https://www.bbc.co.uk",
+      "description": "BBC UK homepage under UAT2 business acceptance users",
+      "users": {
+        "reader": {
+          "username": "uat2.reader@example.com",
+          "password": "uat2-reader-pwd",
+          "role": "READER"
+        },
+        "editor": {
+          "username": "uat2.editor@example.com",
+          "password": "uat2-editor-pwd",
+          "role": "EDITOR"
+        }
+      },
+      "properties": {
+        "defaultLandingPath": "/",
+        "newsPath": "/news",
+        "sportPath": "/sport"
+      }
+    },
+    "Yahoo": {
+      "baseUrl": "https://www.yahoo.com",
+      "description": "Yahoo global homepage under UAT2 acceptance users",
+      "users": {
+        "guest": {
+          "username": "uat2.guest@example.com",
+          "password": "uat2-guest-pwd",
+          "role": "GUEST"
+        },
+        "member": {
+          "username": "uat2.member@example.com",
+          "password": "uat2-member-pwd",
+          "role": "MEMBER"
+        }
+      },
+      "properties": {
+        "financePath": "/finance",
+        "sportsPath": "/sports"
+      }
+    }
+  }
+}

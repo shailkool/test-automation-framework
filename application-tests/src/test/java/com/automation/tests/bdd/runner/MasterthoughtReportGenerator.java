@@ -1,5 +1,8 @@
 package com.automation.tests.bdd.runner;
 
+import com.automation.core.environment.EnvironmentContext;
+import com.automation.core.runprofile.RunProfile;
+import com.automation.core.runprofile.RunProfileContext;
 import lombok.extern.log4j.Log4j2;
 import net.masterthought.cucumber.Configuration;
 import net.masterthought.cucumber.ReportBuilder;
@@ -74,6 +77,8 @@ final class MasterthoughtReportGenerator {
         configuration.addClassifications("Module", "application-tests");
         configuration.addClassifications("OS", System.getProperty("os.name"));
         configuration.addClassifications("JVM", System.getProperty("java.version"));
+        addEnvironmentClassifications(configuration);
+        addRunProfileClassifications(configuration);
         String tagExpression = System.getProperty("cucumber.filter.tags");
         if (tagExpression != null && !tagExpression.isBlank()) {
             configuration.addClassifications("Tag filter", tagExpression);
@@ -98,5 +103,47 @@ final class MasterthoughtReportGenerator {
             return buildNumber;
         }
         return String.valueOf(System.currentTimeMillis() / 1000);
+    }
+
+    private static void addEnvironmentClassifications(Configuration configuration) {
+        try {
+            EnvironmentContext ctx = EnvironmentContext.getInstance();
+            configuration.addClassifications("Environment", ctx.getEnvironmentName());
+            String description = ctx.getConfig().getDescription();
+            if (description != null && !description.isBlank()) {
+                configuration.addClassifications("Environment details", description);
+            }
+        } catch (RuntimeException e) {
+            log.warn("Could not add environment classifications to report: {}", e.getMessage());
+        }
+    }
+
+    private static void addRunProfileClassifications(Configuration configuration) {
+        try {
+            RunProfileContext ctx = RunProfileContext.getInstance();
+            RunProfile profile = ctx.getProfile();
+            configuration.addClassifications("Run profile", ctx.getProfileName());
+
+            // Browser / Headless / Screenshot mode are only meaningful when
+            // the profile actually drives a browser; hide them for API- or
+            // data-only suites that don't configure one.
+            if (profile.hasBrowser()) {
+                String channel = profile.resolveBrowserChannel();
+                String browser = profile.resolveBrowserEngine()
+                    + (channel == null ? "" : " (" + channel + ")");
+                configuration.addClassifications("Browser", browser);
+                configuration.addClassifications("Headless", String.valueOf(profile.isHeadless()));
+                configuration.addClassifications("Screenshot mode",
+                    profile.resolveScreenshotMode().name());
+            }
+
+            Path externalDir = ctx.getEnvironmentConfigDir();
+            if (externalDir != null) {
+                configuration.addClassifications(
+                    "External env-config dir", externalDir.toString());
+            }
+        } catch (RuntimeException e) {
+            log.warn("Could not add run profile classifications to report: {}", e.getMessage());
+        }
     }
 }

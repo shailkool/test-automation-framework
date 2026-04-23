@@ -1,0 +1,9 @@
+{
+  "name": "api-only",
+  "description": "Non-browser run profile for API / DB suites",
+  "outputDirs": {
+    "reports": "test-output/reports",
+    "logs": "test-output/logs",
+    "artifacts": "test-output/artifacts"
+  }
+}
