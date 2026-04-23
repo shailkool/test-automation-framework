@@ -61,18 +61,14 @@ public class SiteNavigationSteps {
             "Active environment : %s%n"
                 + "Active run profile : %s (browser=%s, channel=%s, headless=%s)%n"
                 + "Screenshot mode    : %s%n"
-                + "Available websites : %s%n"
-                + "Available databases: %s%n"
-                + "Available MQs      : %s",
+                + "Available websites : %s",
             environment.getEnvironmentName(),
             profile.getName(),
             profile.resolveBrowserEngine(),
             profile.resolveBrowserChannel(),
             profile.isHeadless(),
             screenshotMode,
-            environment.getWebsites().keySet(),
-            environment.getDatabases().keySet(),
-            environment.getMessageQueues().keySet());
+            environment.getWebsites().keySet());
 
         log.info("\n{}", banner);
         scenario.log(banner);
