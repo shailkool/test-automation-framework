@@ -50,4 +50,9 @@ public class DiffSummary {
         }
         return (unchangedCount * 100.0) / totalRows;
     }
+
+    public String toBusinessString() {
+        return String.format("Matched: %d, Added: %d, Deleted: %d, Modified: %d (%.2f%% Similarity)",
+            unchangedCount, addedCount, deletedCount, modifiedCount, getUnchangedPercentage());
+    }
 }

@@ -1,6 +1,5 @@
 package com.automation.tests.bdd.steps;
 
-import com.automation.core.data.CSVHandler;
 import com.automation.core.data.CentralTestContext;
 import com.automation.core.data.DynamicDataResolver;
 import com.automation.core.diff.DataDiff;
@@ -165,12 +164,21 @@ public class CsvFilterSteps {
 
         attachDiff(html, title);
 
-        Assert.fail(String.format(
-            "Data mismatch in scenario '%s' - %s. HTML diff: %s",
+        String message = String.format(
+            "\n" +
+            "--------------------------------------------------------------------------------\n" +
+            "🛑 DATA MISMATCH DETECTED\n" +
+            "--------------------------------------------------------------------------------\n" +
+            "Scenario : %s\n" +
+            "Outcome  : %s\n" +
+            "Report   : %s\n" +
+            "--------------------------------------------------------------------------------",
             currentScenarioName(),
-            result.getSummary(),
+            result.getDataDiff().getSummary().toBusinessString(),
             htmlPath.toAbsolutePath()
-        ));
+        );
+
+        throw new com.automation.core.exception.DataValidationException(message);
     }
 
     private void attachDiff(String html, String title) {

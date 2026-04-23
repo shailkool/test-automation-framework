@@ -83,7 +83,7 @@ public class DiffResult {
         return (summary.getUnchangedCount() * 100.0) / denominator;
     }
 
-    public String getSummary() {
+    public String getSummaryString() {
         DiffSummary s = dataDiff.getSummary();
         return String.format(
             "Matched: %d, Added: %d, Deleted: %d, Modified: %d, Match %%: %.2f",

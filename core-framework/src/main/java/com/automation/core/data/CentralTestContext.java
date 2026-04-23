@@ -12,6 +12,8 @@ public class CentralTestContext {
     
     private static final ThreadLocal<List<Map<String, String>>> sourceRows = ThreadLocal.withInitial(ArrayList::new);
     private static final ThreadLocal<List<Map<String, String>>> filteredRows = ThreadLocal.withInitial(ArrayList::new);
+    private static final ThreadLocal<java.util.Map<String, List<Map<String, String>>>> namedTables = 
+        ThreadLocal.withInitial(java.util.HashMap::new);
     private static final ThreadLocal<String> baseFolder = new ThreadLocal<>();
 
     public static void setSourceRows(List<Map<String, String>> rows) {
@@ -30,6 +32,14 @@ public class CentralTestContext {
         return filteredRows.get();
     }
 
+    public static void saveTable(String name, List<Map<String, String>> rows) {
+        namedTables.get().put(name, rows);
+    }
+
+    public static List<Map<String, String>> getTable(String name) {
+        return namedTables.get().get(name);
+    }
+
     public static void setBaseFolder(String path) {
         baseFolder.set(path);
     }
@@ -41,6 +51,7 @@ public class CentralTestContext {
     public static void clear() {
         sourceRows.remove();
         filteredRows.remove();
+        namedTables.remove();
         baseFolder.remove();
     }
 }
