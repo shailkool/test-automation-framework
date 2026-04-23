@@ -94,5 +94,8 @@
         "sportsPath": "/sports"
       }
     }
+  },
+  "customProperties": {
+    "Trade Output": "c:/tmp/"
   }
 }

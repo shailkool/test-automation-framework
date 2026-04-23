@@ -107,9 +107,9 @@ final class MasterthoughtReportGenerator {
 
     private static void addEnvironmentClassifications(Configuration configuration) {
         try {
-            EnvironmentContext ctx = EnvironmentContext.getInstance();
-            configuration.addClassifications("Environment", ctx.getEnvironmentName());
-            String description = ctx.getConfig().getDescription();
+            com.automation.core.environment.EnvironmentConfig config = EnvironmentContext.get();
+            configuration.addClassifications("Environment", config.getName());
+            String description = config.getDescription();
             if (description != null && !description.isBlank()) {
                 configuration.addClassifications("Environment details", description);
             }

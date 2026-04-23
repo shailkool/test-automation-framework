@@ -34,6 +34,7 @@ public class DataDiff {
     private final List<String> keyFields;
     private final boolean ignoreCase;
     private final Set<String> ignoredFields;
+    private final boolean useLeftSchema;
 
     private final List<DiffRow> addedRows = new ArrayList<>();
     private final List<DiffRow> deletedRows = new ArrayList<>();
@@ -45,25 +46,27 @@ public class DataDiff {
     public DataDiff(List<Map<String, String>> leftData,
                     List<Map<String, String>> rightData,
                     String keyField) {
-        this(leftData, rightData, Collections.singletonList(keyField), false, Collections.emptySet());
+        this(leftData, rightData, Collections.singletonList(keyField), false, Collections.emptySet(), false);
     }
 
     public DataDiff(List<Map<String, String>> leftData,
                     List<Map<String, String>> rightData,
                     List<String> keyFields) {
-        this(leftData, rightData, keyFields, false, Collections.emptySet());
+        this(leftData, rightData, keyFields, false, Collections.emptySet(), false);
     }
 
     private DataDiff(List<Map<String, String>> leftData,
                      List<Map<String, String>> rightData,
                      List<String> keyFields,
                      boolean ignoreCase,
-                     Set<String> ignoredFields) {
+                     Set<String> ignoredFields,
+                     boolean useLeftSchema) {
         this.leftData = leftData;
         this.rightData = rightData;
         this.keyFields = keyFields == null ? Collections.emptyList() : new ArrayList<>(keyFields);
         this.ignoreCase = ignoreCase;
         this.ignoredFields = ignoredFields == null ? Collections.emptySet() : new LinkedHashSet<>(ignoredFields);
+        this.useLeftSchema = useLeftSchema;
         if (leftData != null && rightData != null) {
             performDiff();
         }
@@ -90,7 +93,8 @@ public class DataDiff {
             actual,
             this.keyFields,
             this.ignoreCase,
-            this.ignoredFields
+            this.ignoredFields,
+            this.useLeftSchema
         );
         return new DiffResult(diff);
     }
@@ -150,11 +154,18 @@ public class DataDiff {
     private List<FieldDiff> compareRows(Map<String, String> leftRow, Map<String, String> rightRow) {
         List<FieldDiff> diffs = new ArrayList<>();
 
-        Set<String> allFields = new LinkedHashSet<>();
-        allFields.addAll(leftRow.keySet());
-        allFields.addAll(rightRow.keySet());
+        Set<String> fieldSelection;
+        if (useLeftSchema) {
+            // Match only columns present in the expected output (leftRow)
+            // and in the order they appear there.
+            fieldSelection = leftRow.keySet();
+        } else {
+            fieldSelection = new LinkedHashSet<>();
+            fieldSelection.addAll(leftRow.keySet());
+            fieldSelection.addAll(rightRow.keySet());
+        }
 
-        for (String field : allFields) {
+        for (String field : fieldSelection) {
             if (keyFields.contains(field) || ignoredFields.contains(field)) {
                 continue;
             }
@@ -256,6 +267,7 @@ public class DataDiff {
 
         private final List<String> keyFields = new ArrayList<>();
         private boolean ignoreCase = false;
+        private boolean useLeftSchema = false;
         private final Set<String> ignoredFields = new LinkedHashSet<>();
 
         public Builder keyField(String keyField) {
@@ -298,6 +310,11 @@ public class DataDiff {
             return this;
         }
 
+        public Builder useLeftSchema(boolean useLeftSchema) {
+            this.useLeftSchema = useLeftSchema;
+            return this;
+        }
+
         public DataDiff build() {
             if (keyFields.isEmpty()) {
                 throw new IllegalStateException(
@@ -309,7 +326,8 @@ public class DataDiff {
                 null,
                 new ArrayList<>(keyFields),
                 ignoreCase,
-                new HashSet<>(ignoredFields)
+                new HashSet<>(ignoredFields),
+                useLeftSchema
             );
         }
     }
