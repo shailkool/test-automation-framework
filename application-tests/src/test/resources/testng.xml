@@ -41,6 +41,13 @@
         </classes>
     </test>
 
+    <!-- Run Profile Tests -->
+    <test name="Run Profile Tests" preserve-order="true">
+        <classes>
+            <class name="com.automation.tests.runprofile.RunProfileContextTest"/>
+        </classes>
+    </test>
+
     <!--
       Messaging Tests (Kafka + JMS/MQ) require live brokers, so they are not
       registered in the default suite. To run them point Surefire at a

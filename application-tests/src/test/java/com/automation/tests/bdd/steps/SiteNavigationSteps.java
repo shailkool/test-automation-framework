@@ -4,6 +4,8 @@ import com.automation.core.environment.EnvironmentContext;
 import com.automation.core.environment.UserCredential;
 import com.automation.core.environment.WebsiteSettings;
 import com.automation.core.playwright.PlaywrightManager;
+import com.automation.core.runprofile.RunProfile;
+import com.automation.core.runprofile.RunProfileContext;
 import com.microsoft.playwright.Page;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
@@ -141,10 +143,16 @@ public class SiteNavigationSteps {
         this.activeSite = environment.getWebsite(siteName);
         this.activeSiteName = siteName;
         this.activeUser = userKey == null ? null : environment.getUser(siteName, userKey);
-        PlaywrightManager.initializeBrowser();
-        log.info("Opened browser session for '{}' (base={}, user={})",
+
+        RunProfile profile = RunProfileContext.getInstance().getProfile();
+        PlaywrightManager.initializeBrowser(
+            profile.resolveBrowserEngine(),
+            profile.resolveBrowserChannel());
+
+        log.info("Opened browser session for '{}' (base={}, user={}, browser={}, channel={})",
             siteName, activeSite.getBaseUrl(),
-            activeUser == null ? "<anonymous>" : activeUser.getUsername());
+            activeUser == null ? "<anonymous>" : activeUser.getUsername(),
+            profile.resolveBrowserEngine(), profile.resolveBrowserChannel());
     }
 
     private void openLandingPage(String expectedSiteName) {

@@ -1,0 +1,22 @@
+{
+  "name": "local",
+  "description": "Developer workstation - headed Chrome, repo-relative artefact dirs",
+  "browser": "chrome",
+  "headless": false,
+  "timeout": 30000,
+  "viewport": {
+    "width": 1920,
+    "height": 1080
+  },
+  "environmentConfigDir": null,
+  "outputDirs": {
+    "reports": "test-output/reports",
+    "logs": "test-output/logs",
+    "screenshots": "test-output/screenshots",
+    "artifacts": "test-output/artifacts"
+  },
+  "properties": {
+    "retryCount": 0,
+    "parallelThreads": 1
+  }
+}

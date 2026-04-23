@@ -1,7 +1,9 @@
 package com.automation.core.environment;
 
+import com.automation.core.runprofile.RunProfileContext;
 import lombok.extern.log4j.Log4j2;
 
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Map;
 
@@ -54,7 +56,7 @@ public final class EnvironmentContext {
                 local = instance;
                 if (local == null) {
                     String env = resolveEnvironmentName();
-                    EnvironmentConfig loaded = new EnvironmentConfigLoader().load(env);
+                    EnvironmentConfig loaded = loadUsingActiveProfile(env);
                     local = new EnvironmentContext(env, loaded);
                     instance = local;
                     log.info("EnvironmentContext initialised for '{}' ({} databases, {} queues, {} websites)",
@@ -74,10 +76,27 @@ public final class EnvironmentContext {
      * JVM; normal test runs rely on {@link #getInstance()} alone.
      */
     public static synchronized EnvironmentContext reload(String environmentName) {
-        EnvironmentConfig loaded = new EnvironmentConfigLoader().load(environmentName);
+        EnvironmentConfig loaded = loadUsingActiveProfile(environmentName);
         instance = new EnvironmentContext(environmentName, loaded);
         log.info("EnvironmentContext reloaded for '{}'", environmentName);
         return instance;
+    }
+
+    private static EnvironmentConfig loadUsingActiveProfile(String environmentName) {
+        EnvironmentConfigLoader loader = new EnvironmentConfigLoader();
+        Path externalDir;
+        try {
+            externalDir = RunProfileContext.getInstance().getEnvironmentConfigDir();
+        } catch (RuntimeException e) {
+            log.debug("Run profile unavailable ({}) - using default classpath lookup", e.getMessage());
+            externalDir = null;
+        }
+        if (externalDir != null) {
+            log.info("Resolving environment '{}' from external directory '{}' (set via run profile)",
+                environmentName, externalDir.toAbsolutePath());
+            return loader.loadFromDir(environmentName, externalDir);
+        }
+        return loader.load(environmentName);
     }
 
     /** Clears the cached singleton. Next {@link #getInstance()} call re-reads. */

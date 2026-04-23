@@ -94,6 +94,27 @@ public class EnvironmentConfigLoader {
         }
     }
 
+    /**
+     * Load {@code <environmentName>.json} from a specific filesystem directory.
+     * Used when a run profile points the loader at an external location (e.g.
+     * a secure volume mounted outside the repository).
+     */
+    public EnvironmentConfig loadFromDir(String environmentName, Path directory) {
+        if (environmentName == null || environmentName.isBlank()) {
+            throw new IllegalArgumentException("environmentName must be provided");
+        }
+        if (directory == null) {
+            throw new IllegalArgumentException("directory must be provided");
+        }
+        Path jsonFile = directory.resolve(environmentName + ".json");
+        if (!Files.exists(jsonFile)) {
+            throw new IllegalStateException(String.format(
+                "Environment config '%s.json' not found in external directory '%s'",
+                environmentName, directory.toAbsolutePath()));
+        }
+        return loadFromPath(jsonFile);
+    }
+
     private void applyDefaults(EnvironmentConfig config, String environmentName) {
         if (config.getName() == null || config.getName().isBlank()) {
             config.setName(environmentName);
