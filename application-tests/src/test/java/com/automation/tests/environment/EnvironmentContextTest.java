@@ -1,6 +1,7 @@
 package com.automation.tests.environment;
 
 import com.automation.core.environment.DatabaseSettings;
+import com.automation.core.environment.EnvironmentConfig;
 import com.automation.core.environment.EnvironmentContext;
 import com.automation.core.environment.MessageQueueSettings;
 import com.automation.core.environment.UserCredential;
@@ -12,10 +13,9 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.expectThrows;
 
 /**
- * Verifies the agnostic environment config plumbing against the dev/qa/uat2
+ * Verifies the simplified environment config plumbing against the dev/qa/uat2
  * JSON files shipped under {@code src/test/resources/environments}.
  */
 public class EnvironmentContextTest {
@@ -27,35 +27,36 @@ public class EnvironmentContextTest {
 
     @AfterMethod
     public void clearSystemProperty() {
-        System.clearProperty(EnvironmentContext.ENV_SYSTEM_PROPERTY);
+        System.clearProperty("env");
         EnvironmentContext.reset();
     }
 
     @Test
     public void defaultsToDevWhenNoSystemPropertyIsSet() {
-        System.clearProperty(EnvironmentContext.ENV_SYSTEM_PROPERTY);
-        EnvironmentContext ctx = EnvironmentContext.getInstance();
-        assertEquals(ctx.getEnvironmentName(), "dev");
-        assertNotNull(ctx.getConfig());
+        System.clearProperty("env");
+        EnvironmentConfig config = EnvironmentContext.get();
+        assertEquals(config.getName(), "dev");
+        assertNotNull(config);
     }
 
     @Test
     public void loadsQaFromSystemProperty() {
-        System.setProperty(EnvironmentContext.ENV_SYSTEM_PROPERTY, "qa");
-        EnvironmentContext ctx = EnvironmentContext.getInstance();
-        assertEquals(ctx.getEnvironmentName(), "qa");
-        assertTrue(ctx.getDatabases().containsKey("archiveDb"),
+        System.setProperty("env", "qa");
+        EnvironmentConfig config = EnvironmentContext.get();
+        assertEquals(config.getName(), "qa");
+        assertTrue(config.getDatabases().containsKey("archiveDb"),
             "qa.json should expose the Oracle archive DB");
-        DatabaseSettings archive = ctx.getDatabase("archiveDb");
+        DatabaseSettings archive = config.getDatabases().get("archiveDb");
         assertEquals(archive.getType(), "oracle");
         assertTrue(archive.getUrl().contains("qa-oracle.internal"));
     }
 
     @Test
     public void qaExposesMultipleMessageQueuesOfDifferentProviders() {
-        EnvironmentContext ctx = EnvironmentContext.reload("qa");
-        MessageQueueSettings kafka = ctx.getMessageQueue("pageViewEvents");
-        MessageQueueSettings mq = ctx.getMessageQueue("paymentQueue");
+        System.setProperty("env", "qa");
+        EnvironmentConfig config = EnvironmentContext.get();
+        MessageQueueSettings kafka = config.getMessageQueues().get("pageViewEvents");
+        MessageQueueSettings mq = config.getMessageQueues().get("paymentQueue");
         assertEquals(kafka.getProvider(), "kafka");
         assertEquals(mq.getProvider(), "ibm_mq");
         assertEquals(mq.getProperties().get("queueManager"), "QA.QM1");
@@ -63,17 +64,18 @@ public class EnvironmentContextTest {
 
     @Test
     public void bbcSiteCarriesItsOwnUserBase() {
-        EnvironmentContext ctx = EnvironmentContext.reload("qa");
-        WebsiteSettings bbc = ctx.getWebsite("BBC");
-        WebsiteSettings yahoo = ctx.getWebsite("Yahoo");
+        System.setProperty("env", "qa");
+        EnvironmentConfig config = EnvironmentContext.get();
+        WebsiteSettings bbc = config.getWebsites().get("BBC");
+        WebsiteSettings yahoo = config.getWebsites().get("Yahoo");
 
         assertTrue(bbc.getUsers().containsKey("admin"),
             "BBC in qa should define an admin user");
         assertTrue(!yahoo.getUsers().containsKey("admin"),
             "Yahoo in qa should NOT inherit BBC's admin user");
 
-        UserCredential bbcReader = ctx.getUser("BBC", "reader");
-        UserCredential yahooGuest = ctx.getUser("Yahoo", "guest");
+        UserCredential bbcReader = bbc.getUsers().get("reader");
+        UserCredential yahooGuest = yahoo.getUsers().get("guest");
         assertEquals(bbcReader.getRole(), "READER");
         assertEquals(yahooGuest.getRole(), "GUEST");
         assertTrue(bbcReader.getUsername().startsWith("qa."));
@@ -81,26 +83,18 @@ public class EnvironmentContextTest {
 
     @Test
     public void uat2ExposesItsOwnDistinctDatabaseConnections() {
-        EnvironmentContext ctx = EnvironmentContext.reload("uat2");
-        assertEquals(ctx.getDatabase("contentDb").getType(), "mssql");
-        assertEquals(ctx.getDatabase("archiveDb").getType(), "oracle");
-        assertTrue(ctx.getDatabase("contentDb").getUrl().contains("uat2-db.internal"));
+        System.setProperty("env", "uat2");
+        EnvironmentConfig config = EnvironmentContext.get();
+        assertEquals(config.getDatabases().get("contentDb").getType(), "mssql");
+        assertEquals(config.getDatabases().get("archiveDb").getType(), "oracle");
+        assertTrue(config.getDatabases().get("contentDb").getUrl().contains("uat2-db.internal"));
     }
 
     @Test
     public void singletonCachesOnFirstAccess() {
-        System.setProperty(EnvironmentContext.ENV_SYSTEM_PROPERTY, "dev");
-        EnvironmentContext first = EnvironmentContext.getInstance();
-        EnvironmentContext second = EnvironmentContext.getInstance();
-        assertTrue(first == second, "EnvironmentContext must be a singleton per JVM");
-    }
-
-    @Test
-    public void unknownDatabaseRaisesDescriptiveError() {
-        EnvironmentContext ctx = EnvironmentContext.reload("dev");
-        IllegalArgumentException thrown = expectThrows(IllegalArgumentException.class,
-            () -> ctx.getDatabase("nope"));
-        assertTrue(thrown.getMessage().contains("dev"));
-        assertTrue(thrown.getMessage().contains("nope"));
+        System.setProperty("env", "dev");
+        EnvironmentConfig first = EnvironmentContext.get();
+        EnvironmentConfig second = EnvironmentContext.get();
+        assertTrue(first == second, "EnvironmentContext must cache the config singleton per JVM");
     }
 }

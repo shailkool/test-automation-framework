@@ -305,7 +305,7 @@ public class DataDiffExamplesTest extends BaseTest {
         generator.saveReport(result, "Database Results Comparison", 
             "test-output/db-diff-report.html");
         
-        ExtentReportManager.logPass("Database comparison: " + result.getSummary());
+        ExtentReportManager.logPass("Database comparison: " + result.getSummaryString());
     }
     
     @Test(description = "Compare API responses")
@@ -328,7 +328,7 @@ public class DataDiffExamplesTest extends BaseTest {
         Assert.assertEquals(result.getDeletedRows(), 1);
         Assert.assertEquals(result.getMatchPercentage(), 66.6, 0.1);
         
-        ExtentReportManager.logPass("API response comparison: " + result.getSummary());
+        ExtentReportManager.logPass("API response comparison: " + result.getSummaryString());
     }
     
     /**

@@ -71,7 +71,7 @@ public class DiffHtmlReportGenerator {
         double matchPct = denominator == 0 ? 100.0 : (unchanged * 100.0) / denominator;
 
         List<DiffRow> rows = diff.getAllRowsInOrder();
-        Set<String> columns = collectColumns(rows);
+        Set<String> columns = collectColumns(diff, rows);
 
         StringBuilder html = new StringBuilder(12 * 1024);
         html.append("<!DOCTYPE html>\n<html lang='en'>\n<head>\n");
@@ -335,11 +335,15 @@ public class DiffHtmlReportGenerator {
         }
     }
 
-    private static Set<String> collectColumns(List<DiffRow> rows) {
+    private static Set<String> collectColumns(DataDiff diff, List<DiffRow> rows) {
         Set<String> columns = new LinkedHashSet<>();
         for (DiffRow row : rows) {
-            if (row.getLeftRow() != null) columns.addAll(row.getLeftRow().keySet());
-            if (row.getRightRow() != null) columns.addAll(row.getRightRow().keySet());
+            if (row.getLeftRow() != null) {
+                columns.addAll(row.getLeftRow().keySet());
+            }
+            if (!diff.isUseLeftSchema() && row.getRightRow() != null) {
+                columns.addAll(row.getRightRow().keySet());
+            }
         }
         return columns;
     }

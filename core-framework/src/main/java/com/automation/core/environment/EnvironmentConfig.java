@@ -26,5 +26,6 @@ public class EnvironmentConfig {
     private Map<String, DatabaseSettings> databases = new LinkedHashMap<>();
     private Map<String, MessageQueueSettings> messageQueues = new LinkedHashMap<>();
     private Map<String, WebsiteSettings> websites = new LinkedHashMap<>();
+    private Map<String, String> customProperties = new LinkedHashMap<>();
     private Map<String, Object> properties = new LinkedHashMap<>();
 }

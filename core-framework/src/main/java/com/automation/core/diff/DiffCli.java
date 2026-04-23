@@ -106,7 +106,7 @@ public final class DiffCli {
         );
 
         out.printf("Compared %s vs %s - %s. Report: %s%n",
-            oldFile, newFile, result.getSummary(), outPath.toAbsolutePath());
+            oldFile, newFile, result.getSummaryString(), outPath.toAbsolutePath());
 
         return result.isIdentical() ? 0 : 1;
     }

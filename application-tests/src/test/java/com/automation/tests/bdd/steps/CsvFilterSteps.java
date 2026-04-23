@@ -1,5 +1,7 @@
 package com.automation.tests.bdd.steps;
 
+import com.automation.core.data.CentralTestContext;
+import com.automation.core.data.DynamicDataResolver;
 import com.automation.core.diff.DataDiff;
 import com.automation.core.diff.DiffReportGenerator;
 import com.automation.core.diff.DiffResult;
@@ -42,35 +44,39 @@ public class CsvFilterSteps {
 
     private Scenario scenario;
     private String sourceName;
-    private List<Map<String, String>> sourceRows = new ArrayList<>();
     private List<FilterRule> rules = new ArrayList<>();
-    private List<Map<String, String>> filtered;
 
     @Before
-    public void captureScenario(Scenario scenario) {
+    public void setup(Scenario scenario) {
         this.scenario = scenario;
+        CentralTestContext.clear();
+        DynamicDataResolver.clear();
     }
 
     @Given("a source CSV file named {string} with the following data:")
     public void aSourceCsvFileWithData(String name, DataTable table) {
         this.sourceName = name;
-        this.sourceRows = table.asMaps(String.class, String.class);
-        log.info("Loaded inline source '{}' with {} rows", name, sourceRows.size());
+        List<Map<String, String>> rows = table.asMaps(String.class, String.class);
+        CentralTestContext.setSourceRows(rows);
+        log.info("Loaded inline source '{}' with {} rows", name, rows.size());
     }
 
     @Given("a source CSV file loaded from {string}")
     public void aSourceCsvFileLoadedFrom(String resourcePath) {
         String absolute = resolveResource(resourcePath);
         this.sourceName = Paths.get(absolute).getFileName().toString();
-        this.sourceRows = new com.automation.core.data.CSVHandler(absolute).getAllData();
-        log.info("Loaded external source '{}' with {} rows", absolute, sourceRows.size());
+        List<Map<String, String>> rows = new com.automation.core.data.CSVHandler(absolute).getAllData();
+        CentralTestContext.setSourceRows(rows);
+        log.info("Loaded external source '{}' with {} rows", absolute, rows.size());
     }
 
     @And("a configuration feature file defining:")
     public void aConfigurationFeatureFileDefining(DataTable table) {
         List<Map<String, String>> config = table.asMaps(String.class, String.class);
+        List<Map<String, String>> resolvedConfig = DynamicDataResolver.resolveTable(config);
+        
         List<FilterRule> parsed = new ArrayList<>();
-        for (Map<String, String> row : config) {
+        for (Map<String, String> row : resolvedConfig) {
             parsed.add(new FilterRule(
                 row.get("column"),
                 row.get("operator"),
@@ -78,7 +84,7 @@ public class CsvFilterSteps {
             ));
         }
         this.rules = parsed;
-        log.info("Loaded {} inline filter rules", rules.size());
+        log.info("Loaded {} inline filter rules (dynamic variables resolved)", rules.size());
     }
 
     @And("filter rules loaded from {string}")
@@ -91,13 +97,15 @@ public class CsvFilterSteps {
     @When("the filtering engine is executed")
     public void theFilteringEngineIsExecuted() {
         CsvFilterEngine engine = new CsvFilterEngine(rules);
-        this.filtered = engine.filter(sourceRows);
+        List<Map<String, String>> filtered = engine.filter(CentralTestContext.getSourceRows());
+        CentralTestContext.setFilteredRows(filtered);
         log.info("Filter executed: {} source rows, {} rules, {} output rows",
-            sourceRows.size(), rules.size(), filtered.size());
+            CentralTestContext.getSourceRows().size(), rules.size(), filtered.size());
     }
 
     @Then("the output should contain {int} records")
     public void theOutputShouldContainRecords(Integer expectedCount) {
+        List<Map<String, String>> filtered = CentralTestContext.getFilteredRows();
         Assert.assertNotNull(filtered, "Filter output has not been produced");
         Assert.assertEquals(
             filtered.size(),
@@ -118,11 +126,14 @@ public class CsvFilterSteps {
      * {@code test-output/cucumber-diff/}, and attached to the running scenario
      * so masterthought embeds it in the HTML report.
      */
-    @And("the resulting data should be:")
+    @Then("the resulting data should be:")
     public void theResultingDataShouldBe(DataTable expectedTable) {
+        List<Map<String, String>> filtered = CentralTestContext.getFilteredRows();
         Assert.assertNotNull(filtered, "Filter output has not been produced");
 
-        List<Map<String, String>> expected = expectedTable.asMaps(String.class, String.class);
+        List<Map<String, String>> rawExpected = expectedTable.asMaps(String.class, String.class);
+        List<Map<String, String>> expected = DynamicDataResolver.resolveTable(rawExpected);
+        
         if (expected.isEmpty()) {
             Assert.assertEquals(filtered.size(), 0, "Expected an empty result set");
             return;
@@ -131,6 +142,7 @@ public class CsvFilterSteps {
         String keyField = expected.get(0).keySet().iterator().next();
         DiffResult result = DataDiff.builder()
             .keyField(keyField)
+            .useLeftSchema(true)
             .build()
             .compare(expected, filtered);
 
@@ -152,12 +164,21 @@ public class CsvFilterSteps {
 
         attachDiff(html, title);
 
-        Assert.fail(String.format(
-            "Data mismatch in scenario '%s' - %s. HTML diff: %s",
+        String message = String.format(
+            "\n" +
+            "--------------------------------------------------------------------------------\n" +
+            "🛑 DATA MISMATCH DETECTED\n" +
+            "--------------------------------------------------------------------------------\n" +
+            "Scenario : %s\n" +
+            "Outcome  : %s\n" +
+            "Report   : %s\n" +
+            "--------------------------------------------------------------------------------",
             currentScenarioName(),
-            result.getSummary(),
+            result.getDataDiff().getSummary().toBusinessString(),
             htmlPath.toAbsolutePath()
-        ));
+        );
+
+        throw new com.automation.core.exception.DataValidationException(message);
     }
 
     private void attachDiff(String html, String title) {
@@ -191,6 +212,15 @@ public class CsvFilterSteps {
      * resource hasn't been copied to {@code target/test-classes} yet.
      */
     private String resolveResource(String relativePath) {
+        // Support base folder if set by other step classes
+        String base = CentralTestContext.getBaseFolder();
+        if (base != null) {
+            Path fullPath = Paths.get(base, relativePath);
+            if (fullPath.toFile().exists()) {
+                return fullPath.toString();
+            }
+        }
+
         URL resource = Thread.currentThread()
             .getContextClassLoader()
             .getResource(relativePath);

@@ -36,6 +36,12 @@
             <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.automation</groupId>
+            <artifactId>core-framework</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- TestNG -->
         <dependency>
             <groupId>org.testng</groupId>

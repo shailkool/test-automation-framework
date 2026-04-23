@@ -31,13 +31,13 @@ public class RunProfileContextTest {
         RunProfileContext.reset();
         EnvironmentContext.reset();
         System.clearProperty(RunProfileContext.PROFILE_SYSTEM_PROPERTY);
-        System.clearProperty(EnvironmentContext.ENV_SYSTEM_PROPERTY);
+        System.clearProperty("env");
     }
 
     @AfterMethod
     public void clearSystemProperties() {
         System.clearProperty(RunProfileContext.PROFILE_SYSTEM_PROPERTY);
-        System.clearProperty(EnvironmentContext.ENV_SYSTEM_PROPERTY);
+        System.clearProperty("env");
         RunProfileContext.reset();
         EnvironmentContext.reset();
     }
@@ -139,10 +139,10 @@ public class RunProfileContextTest {
             profile.setEnvironmentConfigDir(tempDir.toString());
             installRunProfile(profile);
 
-            System.setProperty(EnvironmentContext.ENV_SYSTEM_PROPERTY, "stag");
-            EnvironmentContext envCtx = EnvironmentContext.getInstance();
-            assertEquals(envCtx.getEnvironmentName(), "stag");
-            assertEquals(envCtx.getConfig().getDescription(), "staging");
+            System.setProperty("env", "stag");
+            EnvironmentConfig envConfig = EnvironmentContext.get();
+            assertEquals(envConfig.getName(), "stag");
+            assertEquals(envConfig.getDescription(), "staging");
 
             // And prove the loader really reads from disk by consulting it directly.
             EnvironmentConfig direct = new EnvironmentConfigLoader()

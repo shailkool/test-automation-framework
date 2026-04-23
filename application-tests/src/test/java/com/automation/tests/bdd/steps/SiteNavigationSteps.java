@@ -1,5 +1,6 @@
 package com.automation.tests.bdd.steps;
 
+import com.automation.core.environment.EnvironmentConfig;
 import com.automation.core.environment.EnvironmentContext;
 import com.automation.core.environment.UserCredential;
 import com.automation.core.environment.WebsiteSettings;
@@ -41,7 +42,7 @@ public class SiteNavigationSteps {
     private static final DateTimeFormatter TS = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS");
 
     private Scenario scenario;
-    private EnvironmentContext environment;
+    private EnvironmentConfig environment;
     private ScreenshotMode screenshotMode = ScreenshotMode.ON_FAILURE;
     private WebsiteSettings activeSite;
     private String activeSiteName;
@@ -53,7 +54,7 @@ public class SiteNavigationSteps {
         this.scenario = scenario;
         this.journey.clear();
 
-        this.environment = EnvironmentContext.getInstance();
+        this.environment = EnvironmentContext.get();
         RunProfile profile = RunProfileContext.getInstance().getProfile();
         this.screenshotMode = profile.resolveScreenshotMode();
 
@@ -62,7 +63,7 @@ public class SiteNavigationSteps {
                 + "Active run profile : %s (browser=%s, channel=%s, headless=%s)%n"
                 + "Screenshot mode    : %s%n"
                 + "Available websites : %s",
-            environment.getEnvironmentName(),
+            environment.getName(),
             profile.getName(),
             profile.resolveBrowserEngine(),
             profile.resolveBrowserChannel(),
@@ -101,9 +102,9 @@ public class SiteNavigationSteps {
 
     @And("I switch the browser session to the {string} website as user {string}")
     public void iSwitchTheBrowserSessionToTheWebsiteAsUser(String siteName, String userKey) {
-        this.activeSite = environment.getWebsite(siteName);
+        this.activeSite = environment.getWebsites().get(siteName);
         this.activeSiteName = siteName;
-        this.activeUser = environment.getUser(siteName, userKey);
+        this.activeUser = activeSite.getUsers().get(userKey);
         log.info("Switched context to '{}' (base={}, user={})",
             siteName, activeSite.getBaseUrl(), activeUser.getUsername());
     }
@@ -124,7 +125,7 @@ public class SiteNavigationSteps {
         Object pathValue = activeSite.getProperties().get(pathPropertyKey);
         Assert.assertNotNull(pathValue, String.format(
             "Website '%s' in environment '%s' has no property '%s' to navigate to",
-            activeSiteName, environment.getEnvironmentName(), pathPropertyKey));
+            activeSiteName, environment.getName(), pathPropertyKey));
 
         String absoluteUrl = joinUrl(activeSite.getBaseUrl(), String.valueOf(pathValue));
         visit(absoluteUrl);
@@ -141,7 +142,7 @@ public class SiteNavigationSteps {
 
     @And("every visited page should belong to the {string} base URL")
     public void everyVisitedPageShouldBelongToTheBaseUrl(String siteName) {
-        String expectedHost = hostOf(environment.getWebsite(siteName).getBaseUrl());
+        String expectedHost = hostOf(environment.getWebsites().get(siteName).getBaseUrl());
         for (String visited : journey) {
             String actualHost = hostOf(visited);
             Assert.assertTrue(actualHost.endsWith(stripWww(expectedHost))
@@ -152,7 +153,7 @@ public class SiteNavigationSteps {
 
     @And("the journey should include a page under the {string} base URL")
     public void theJourneyShouldIncludeAPageUnderTheBaseUrl(String siteName) {
-        String expectedHost = stripWww(hostOf(environment.getWebsite(siteName).getBaseUrl()));
+        String expectedHost = stripWww(hostOf(environment.getWebsites().get(siteName).getBaseUrl()));
         boolean hit = journey.stream()
             .anyMatch(u -> stripWww(hostOf(u)).endsWith(expectedHost));
         Assert.assertTrue(hit,
@@ -160,9 +161,9 @@ public class SiteNavigationSteps {
     }
 
     private void openSession(String siteName, String userKey) {
-        this.activeSite = environment.getWebsite(siteName);
+        this.activeSite = environment.getWebsites().get(siteName);
         this.activeSiteName = siteName;
-        this.activeUser = userKey == null ? null : environment.getUser(siteName, userKey);
+        this.activeUser = userKey == null ? null : activeSite.getUsers().get(userKey);
 
         RunProfile profile = RunProfileContext.getInstance().getProfile();
         PlaywrightManager.initializeBrowser(

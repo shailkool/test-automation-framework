@@ -265,7 +265,7 @@ public class DataDiffTest extends BaseTest {
         Assert.assertEquals(result.getDeletedRows(),  1, "Alice should be DELETED");
         Assert.assertEquals(result.getModifiedRows(), 0, "Nothing modified once ignoreCase + ignoreField applied");
 
-        ExtentReportManager.logPass("Composite-key builder diff completed: " + result.getSummary());
+        ExtentReportManager.logPass("Composite-key builder diff completed: " + result.getSummaryString());
     }
 
     @Test(description = "Test with no differences")
