@@ -9,6 +9,7 @@
     "height": 1080
   },
   "environmentConfigDir": null,
+  "screenshotMode": "EACH_STEP",
   "outputDirs": {
     "reports": "test-output/reports",
     "logs": "test-output/logs",

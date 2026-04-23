@@ -5,6 +5,7 @@
   "headless": true,
   "timeout": 30000,
   "environmentConfigDir": "/opt/secure-configs/environments",
+  "screenshotMode": "ON_FAILURE",
   "outputDirs": {
     "reports": "/var/test-runs/reports",
     "logs": "/var/test-runs/logs",

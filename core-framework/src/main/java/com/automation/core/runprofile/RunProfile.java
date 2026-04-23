@@ -37,6 +37,7 @@ public class RunProfile {
     private Viewport viewport;
     private String environmentConfigDir;
     private OutputDirs outputDirs;
+    private String screenshotMode;
     private Map<String, Object> properties = new LinkedHashMap<>();
 
     /** Playwright engine (CHROMIUM / FIREFOX / WEBKIT) derived from {@link #browser}. */
@@ -83,5 +84,13 @@ public class RunProfile {
 
     public int timeoutOrDefault(int defaultMillis) {
         return timeout == null || timeout <= 0 ? defaultMillis : timeout;
+    }
+
+    /**
+     * Typed view of {@link #screenshotMode}. Defaults to {@link ScreenshotMode#ON_FAILURE}
+     * when the profile doesn't specify a value.
+     */
+    public ScreenshotMode resolveScreenshotMode() {
+        return ScreenshotMode.parse(screenshotMode);
     }
 }

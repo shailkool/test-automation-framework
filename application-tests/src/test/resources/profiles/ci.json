@@ -9,6 +9,7 @@
     "height": 768
   },
   "environmentConfigDir": null,
+  "screenshotMode": "ON_FAILURE",
   "outputDirs": {
     "reports": "${WORKSPACE:-/tmp/ci}/reports",
     "logs": "${WORKSPACE:-/tmp/ci}/logs",

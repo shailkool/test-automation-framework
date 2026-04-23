@@ -6,6 +6,7 @@ import com.automation.core.environment.EnvironmentContext;
 import com.automation.core.playwright.PlaywrightManager.BrowserEngine;
 import com.automation.core.runprofile.RunProfile;
 import com.automation.core.runprofile.RunProfileContext;
+import com.automation.core.runprofile.ScreenshotMode;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -77,6 +78,32 @@ public class RunProfileContextTest {
         assertNotNull(ctx.getEnvironmentConfigDir());
         assertEquals(ctx.getEnvironmentConfigDir().toString(),
             "/opt/secure-configs/environments");
+    }
+
+    @Test
+    public void localProfileDefaultsScreenshotModeToEachStep() {
+        RunProfileContext ctx = RunProfileContext.reload("local");
+        assertEquals(ctx.getProfile().resolveScreenshotMode(), ScreenshotMode.EACH_STEP);
+    }
+
+    @Test
+    public void ciProfileDefaultsScreenshotModeToOnFailure() {
+        RunProfileContext ctx = RunProfileContext.reload("ci");
+        assertEquals(ctx.getProfile().resolveScreenshotMode(), ScreenshotMode.ON_FAILURE);
+    }
+
+    @Test
+    public void missingScreenshotModeFallsBackToOnFailure() {
+        RunProfile bare = new RunProfile();
+        assertEquals(bare.resolveScreenshotMode(), ScreenshotMode.ON_FAILURE);
+    }
+
+    @Test
+    public void screenshotModeParsingIsCaseAndHyphenTolerant() {
+        assertEquals(ScreenshotMode.parse("each-step"), ScreenshotMode.EACH_STEP);
+        assertEquals(ScreenshotMode.parse(" Always "), ScreenshotMode.EACH_STEP);
+        assertEquals(ScreenshotMode.parse("off"), ScreenshotMode.OFF);
+        assertEquals(ScreenshotMode.parse("nope"), ScreenshotMode.ON_FAILURE);
     }
 
     @Test

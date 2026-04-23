@@ -6,6 +6,7 @@ import com.automation.core.environment.WebsiteSettings;
 import com.automation.core.playwright.PlaywrightManager;
 import com.automation.core.runprofile.RunProfile;
 import com.automation.core.runprofile.RunProfileContext;
+import com.automation.core.runprofile.ScreenshotMode;
 import com.microsoft.playwright.Page;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
@@ -17,6 +18,11 @@ import io.cucumber.java.en.When;
 import lombok.extern.log4j.Log4j2;
 import org.testng.Assert;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -32,8 +38,11 @@ import java.util.Objects;
 @Log4j2
 public class SiteNavigationSteps {
 
+    private static final DateTimeFormatter TS = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS");
+
     private Scenario scenario;
     private EnvironmentContext environment;
+    private ScreenshotMode screenshotMode = ScreenshotMode.ON_FAILURE;
     private WebsiteSettings activeSite;
     private String activeSiteName;
     private UserCredential activeUser;
@@ -46,10 +55,12 @@ public class SiteNavigationSteps {
 
         this.environment = EnvironmentContext.getInstance();
         RunProfile profile = RunProfileContext.getInstance().getProfile();
+        this.screenshotMode = profile.resolveScreenshotMode();
 
         String banner = String.format(
             "Active environment : %s%n"
                 + "Active run profile : %s (browser=%s, channel=%s, headless=%s)%n"
+                + "Screenshot mode    : %s%n"
                 + "Available websites : %s%n"
                 + "Available databases: %s%n"
                 + "Available MQs      : %s",
@@ -58,6 +69,7 @@ public class SiteNavigationSteps {
             profile.resolveBrowserEngine(),
             profile.resolveBrowserChannel(),
             profile.isHeadless(),
+            screenshotMode,
             environment.getWebsites().keySet(),
             environment.getDatabases().keySet(),
             environment.getMessageQueues().keySet());
@@ -69,9 +81,15 @@ public class SiteNavigationSteps {
     @After("@navigation")
     public void afterNavigationScenario() {
         try {
-            PlaywrightManager.closeBrowser();
-        } catch (RuntimeException e) {
-            log.warn("Browser cleanup failed: {}", e.getMessage());
+            if (scenario != null && scenario.isFailed() && screenshotMode != ScreenshotMode.OFF) {
+                captureScreenshot("failure");
+            }
+        } finally {
+            try {
+                PlaywrightManager.closeBrowser();
+            } catch (RuntimeException e) {
+                log.warn("Browser cleanup failed: {}", e.getMessage());
+            }
         }
     }
 
@@ -181,6 +199,47 @@ public class SiteNavigationSteps {
         if (scenario != null) {
             scenario.log("Visited: " + landed);
         }
+        if (screenshotMode == ScreenshotMode.EACH_STEP) {
+            captureScreenshot("step-" + journey.size());
+        }
+    }
+
+    /**
+     * Take a PNG via Playwright, attach it to the current Cucumber scenario,
+     * and persist it under the run profile's screenshots directory. Failures
+     * are swallowed with a warning so screenshot issues never mask the real
+     * test outcome.
+     */
+    private void captureScreenshot(String label) {
+        try {
+            byte[] png = PlaywrightManager.takeScreenshot();
+            if (png == null || png.length == 0) {
+                return;
+            }
+            String name = sanitize(scenarioName()) + "_" + label + "_"
+                + LocalDateTime.now().format(TS) + ".png";
+            if (scenario != null) {
+                scenario.attach(png, "image/png", name);
+            }
+            Path dir = RunProfileContext.getInstance().getScreenshotsDir();
+            Files.createDirectories(dir);
+            Path target = dir.resolve(name);
+            Files.write(target, png);
+            log.info("Screenshot '{}' saved to {}", label, target.toAbsolutePath());
+        } catch (IOException | RuntimeException e) {
+            log.warn("Screenshot capture failed ({}): {}", label, e.getMessage());
+        }
+    }
+
+    private String scenarioName() {
+        if (scenario == null || scenario.getName() == null || scenario.getName().isBlank()) {
+            return "navigation";
+        }
+        return scenario.getName();
+    }
+
+    private static String sanitize(String value) {
+        return value.replaceAll("[^A-Za-z0-9._-]+", "_");
     }
 
     private void requireActiveSite() {
