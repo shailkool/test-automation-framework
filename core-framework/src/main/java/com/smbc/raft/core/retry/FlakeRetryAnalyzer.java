@@ -78,7 +78,8 @@ public class FlakeRetryAnalyzer implements IRetryAnalyzer {
         }
 
         String key = key(result);
-        int attempts = ATTEMPT_COUNTS.merge(key, 1, Integer::sum);
+        Integer attemptsObj = ATTEMPT_COUNTS.merge(key, 1, (oldV, newV) -> oldV + newV);
+        int attempts = attemptsObj != null ? attemptsObj : 1;
 
         if (attempts <= MAX_ATTEMPTS) {
             log.warn("Retrying [{}/{}] {} — transient failure: {}",

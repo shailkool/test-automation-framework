@@ -26,6 +26,8 @@
         <env>dev</env>
         <profile>local</profile>
         <cucumber.filter.tags>@smoke</cucumber.filter.tags>
+        <maven.install.skip>true</maven.install.skip>
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <dependencies>
