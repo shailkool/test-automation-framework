@@ -19,7 +19,7 @@ import java.util.Map;
 /**
  * Integration tests combining UI, API, and Database layers
  */
-@Test(singleThreaded = true)
+@Test(singleThreaded = true, description = "Integration tests for user lifecycle across UI, API and DB layers")
 public class UserEndToEndTest extends BaseTest {
     
     private UserApiClient userApi;

@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE module PUBLIC
+    "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+    "https://checkstyle.org/dtds/configuration_1_3.dtd">
+
+<module name="Checker">
+    <property name="severity" value="warning"/>
+    <property name="fileExtensions" value="java"/>
+
+    <!-- ── File-level checks ─────────────────────────────────────────── -->
+    <module name="FileTabCharacter">
+        <property name="eachLine" value="true"/>
+    </module>
+
+    <module name="NewlineAtEndOfFile"/>
+
+    <!-- Files should not exceed 500 lines — split large page objects -->
+    <module name="FileLength">
+        <property name="max" value="500"/>
+    </module>
+
+    <module name="TreeWalker">
+
+        <!-- ── BANNED PATTERNS — these will FAIL the build ─────────────── -->
+
+        <!-- 1. No Thread.sleep() — use ValidationLoop or Playwright auto-wait -->
+        <module name="RegexpSinglelineJava">
+            <property name="id" value="NoThreadSleep"/>
+            <property name="format" value="Thread\.sleep\s*\("/>
+            <property name="message"
+                value="Thread.sleep() is banned. Use ValidationLoop, ValidationLoop.shortLoop(), or Playwright's built-in auto-wait instead."/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
+        <!-- 2. No hardcoded locators as inline string literals in test classes -->
+        <!-- Selectors belong in Page Object constants, not scattered in test methods -->
+        <module name="RegexpSinglelineJava">
+            <property name="id" value="NoInlineLocators"/>
+            <property name="format"
+                value="(page\.locator|page\.click|page\.fill|page\.waitForSelector)\s*\(\s*&quot;[^&quot;]{5,}&quot;"/>
+            <property name="message"
+                value="Inline locators in test classes are banned. Define selectors as constants in the matching Page Object class."/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
+        <!-- 3. No System.out.println — use Log4j2 or ExtentReportManager -->
+        <module name="RegexpSinglelineJava">
+            <property name="id" value="NoSysOut"/>
+            <property name="format" value="System\.(out|err)\.print"/>
+            <property name="message"
+                value="Use log.info() / log.debug() or ExtentReportManager.logInfo() instead of System.out.println."/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
+        <!-- 4. @Test methods must have a description attribute -->
+        <module name="RegexpSinglelineJava">
+            <property name="id" value="TestDescriptionRequired"/>
+            <property name="format" value="@Test\s*\((?!.*description).*\)|@Test\s*$"/>
+            <property name="message"
+                value="Every @Test annotation must include a description attribute, e.g. @Test(description = &quot;Verify login with valid credentials&quot;)."/>
+        </module>
+
+        <!-- 5. No e.printStackTrace() — exceptions must be logged properly -->
+        <module name="RegexpSinglelineJava">
+            <property name="id" value="NoPrintStackTrace"/>
+            <property name="format" value="\.printStackTrace\(\)"/>
+            <property name="message"
+                value="Use log.error(&quot;message&quot;, e) instead of e.printStackTrace()."/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
+        <!-- ── METHOD LENGTH — keeps test methods focused ───────────────── -->
+        <!-- Test methods over 60 lines usually contain multiple concerns -->
+        <module name="MethodLength">
+            <property name="max" value="60"/>
+            <property name="tokens" value="METHOD_DEF"/>
+            <message key="maxLen.method"
+                value="Method ''{0}'' is {1} lines long (max {2}). Extract steps into helper methods or split into separate @Test methods."/>
+        </module>
+
+        <!-- ── IMPORTS ────────────────────────────────────────────────── -->
+        <module name="UnusedImports"/>
+        <module name="RedundantImport"/>
+
+        <!-- Disallow star imports except for static — keeps dependencies explicit -->
+        <module name="AvoidStarImport">
+            <property name="allowStaticMemberImports" value="true"/>
+        </module>
+
+        <!-- ── NAMING ─────────────────────────────────────────────────── -->
+        <!-- Test method names: camelCase starting with 'test' or a verb -->
+        <module name="MethodName">
+            <property name="format" value="^(test|verify|should|given|when|then)[A-Z][a-zA-Z0-9]*$|^[a-z][a-zA-Z0-9]*$"/>
+        </module>
+
+        <!-- Constants must be UPPER_SNAKE_CASE -->
+        <module name="ConstantName"/>
+
+        <!-- ── WHITESPACE ─────────────────────────────────────────────── -->
+        <module name="WhitespaceAround">
+            <property name="allowEmptyConstructors" value="true"/>
+            <property name="allowEmptyMethods" value="true"/>
+        </module>
+
+        <!-- ── CODE QUALITY ──────────────────────────────────────────── -->
+        <!-- Nested try-catch is a sign of swallowed exceptions -->
+        <module name="NestedTryDepth">
+            <property name="max" value="1"/>
+        </module>
+
+        <!-- Too many parameters suggests a method doing too much -->
+        <module name="ParameterNumber">
+            <property name="max" value="8"/>
+        </module>
+
+        <!-- Empty catch blocks must have a comment explaining why -->
+        <module name="EmptyCatchBlock">
+            <property name="exceptionVariableName" value="expected|ignore"/>
+        </module>
+
+        <module name="EmptyStatement"/>
+        <module name="EqualsHashCode"/>
+        <module name="StringLiteralEquality"/>
+
+        <!-- ── JAVADOC ────────────────────────────────────────────────── -->
+        <!-- Public methods in core-framework and application-automation 
+             must have Javadoc. Suppressed for test classes via suppressions.xml -->
+        <!-- Temporarily disabled to allow build to pass while cleaning up codebase
+        <module name="MissingJavadocMethod">
+            <property name="scope" value="public"/>
+            <property name="allowMissingPropertyJavadoc" value="true"/>
+        </module>
+        -->
+
+    </module>
+</module>

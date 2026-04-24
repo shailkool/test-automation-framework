@@ -10,48 +10,48 @@ import java.util.Map;
  */
 public class CentralTestContext {
     
-    private static final ThreadLocal<List<Map<String, String>>> sourceRows = ThreadLocal.withInitial(ArrayList::new);
-    private static final ThreadLocal<List<Map<String, String>>> filteredRows = ThreadLocal.withInitial(ArrayList::new);
-    private static final ThreadLocal<java.util.Map<String, List<Map<String, String>>>> namedTables = 
+    private static final ThreadLocal<List<Map<String, String>>> SOURCE_ROWS = ThreadLocal.withInitial(ArrayList::new);
+    private static final ThreadLocal<List<Map<String, String>>> FILTERED_ROWS = ThreadLocal.withInitial(ArrayList::new);
+    private static final ThreadLocal<java.util.Map<String, List<Map<String, String>>>> NAMED_TABLES = 
         ThreadLocal.withInitial(java.util.HashMap::new);
-    private static final ThreadLocal<String> baseFolder = new ThreadLocal<>();
+    private static final ThreadLocal<String> BASE_FOLDER = new ThreadLocal<>();
 
     public static void setSourceRows(List<Map<String, String>> rows) {
-        sourceRows.set(rows);
+        SOURCE_ROWS.set(rows);
     }
 
     public static List<Map<String, String>> getSourceRows() {
-        return sourceRows.get();
+        return SOURCE_ROWS.get();
     }
 
     public static void setFilteredRows(List<Map<String, String>> rows) {
-        filteredRows.set(rows);
+        FILTERED_ROWS.set(rows);
     }
 
     public static List<Map<String, String>> getFilteredRows() {
-        return filteredRows.get();
+        return FILTERED_ROWS.get();
     }
 
     public static void saveTable(String name, List<Map<String, String>> rows) {
-        namedTables.get().put(name, rows);
+        NAMED_TABLES.get().put(name, rows);
     }
 
     public static List<Map<String, String>> getTable(String name) {
-        return namedTables.get().get(name);
+        return NAMED_TABLES.get().get(name);
     }
 
     public static void setBaseFolder(String path) {
-        baseFolder.set(path);
+        BASE_FOLDER.set(path);
     }
 
     public static String getBaseFolder() {
-        return baseFolder.get();
+        return BASE_FOLDER.get();
     }
 
     public static void clear() {
-        sourceRows.remove();
-        filteredRows.remove();
-        namedTables.remove();
-        baseFolder.remove();
+        SOURCE_ROWS.remove();
+        FILTERED_ROWS.remove();
+        NAMED_TABLES.remove();
+        BASE_FOLDER.remove();
     }
 }

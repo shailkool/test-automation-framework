@@ -1,6 +1,9 @@
 package com.smbc.raft.core.playwright;
 
-import com.microsoft.playwright.*;
+import com.microsoft.playwright.Dialog;
+import com.microsoft.playwright.FrameLocator;
+import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.AriaRole;
 import com.microsoft.playwright.options.WaitForSelectorState;
 import lombok.extern.log4j.Log4j2;

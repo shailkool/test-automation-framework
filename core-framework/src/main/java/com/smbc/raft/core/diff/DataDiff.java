@@ -27,6 +27,7 @@ import java.util.Set;
  * </ul>
  */
 @Getter
+@lombok.extern.log4j.Log4j2
 public class DataDiff {
 
     private final List<Map<String, String>> leftData;
@@ -249,14 +250,14 @@ public class DataDiff {
 
     public void printSummary() {
         DiffSummary summary = getSummary();
-        System.out.println("=== Data Diff Summary ===");
-        System.out.println("Left rows:       " + summary.getLeftRowCount());
-        System.out.println("Right rows:      " + summary.getRightRowCount());
-        System.out.println("Added:           " + summary.getAddedCount());
-        System.out.println("Deleted:         " + summary.getDeletedCount());
-        System.out.println("Modified:        " + summary.getModifiedCount());
-        System.out.println("Unchanged:       " + summary.getUnchangedCount());
-        System.out.println("Has differences: " + hasDifferences);
+        log.info("=== Data Diff Summary ===");
+        log.info("Left rows:       {}", summary.getLeftRowCount());
+        log.info("Right rows:      {}", summary.getRightRowCount());
+        log.info("Added:           {}", summary.getAddedCount());
+        log.info("Deleted:         {}", summary.getDeletedCount());
+        log.info("Modified:        {}", summary.getModifiedCount());
+        log.info("Unchanged:       {}", summary.getUnchangedCount());
+        log.info("Has differences: {}", hasDifferences);
     }
 
     /**

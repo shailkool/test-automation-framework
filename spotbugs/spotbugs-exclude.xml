@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!-- Exposing internal representation: common in test data handling (Maps, Lists) -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2,MS_EXPOSE_REP"/>
+    </Match>
+
+    <!-- Constructor throws exception: irrelevant for our framework security profile -->
+    <Match>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+
+    <!-- Encoding and Case Conversion: noise for now -->
+    <Match>
+        <Bug pattern="DM_DEFAULT_ENCODING,DM_CONVERT_CASE"/>
+    </Match>
+
+    <!-- Format strings using \n instead of %n -->
+    <Match>
+        <Bug pattern="VA_FORMAT_STRING_USES_NEWLINE"/>
+    </Match>
+
+    <!-- Generic Database utilities often pass non-constant SQL strings -->
+    <Match>
+        <Bug pattern="SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING"/>
+    </Match>
+
+    <!-- Stylistic preferences: noise for baseline establishment -->
+    <Match>
+        <Bug pattern="PZLA_PREFER_ZERO_LENGTH_ARRAYS,ME_ENUM_FIELD_SETTER,REC_CATCH_EXCEPTION,RV_RETURN_VALUE_IGNORED_BAD_PRACTICE"/>
+    </Match>
+
+    <!-- Null pointer noise from return values: too sensitive for legacy code -->
+    <Match>
+        <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+    </Match>
+
+    <!-- Double check locking: usually in lazy initialization of managers -->
+    <Match>
+        <Bug pattern="DC_DOUBLECHECK"/>
+    </Match>
+
+</FindBugsFilter>

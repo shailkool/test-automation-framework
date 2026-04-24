@@ -6,7 +6,12 @@ import com.smbc.raft.core.playwright.PlaywrightManager;
 import com.smbc.raft.core.reporting.ExtentReportManager;
 import lombok.extern.log4j.Log4j2;
 import org.testng.ITestResult;
-import org.testng.annotations.*;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
 
 /**
  * Base test class with setup and teardown methods

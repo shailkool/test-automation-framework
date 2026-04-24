@@ -1,7 +1,12 @@
 package com.smbc.raft.core.playwright;
 
 import com.smbc.raft.core.config.ConfigurationManager;
-import com.microsoft.playwright.*;
+import com.microsoft.playwright.Browser;
+import com.microsoft.playwright.BrowserContext;
+import com.microsoft.playwright.BrowserType;
+import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.Playwright;
 import lombok.extern.log4j.Log4j2;
 
 /**
@@ -10,18 +15,18 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class PlaywrightManager {
     
-    private static final ThreadLocal<Playwright> playwright = new ThreadLocal<>();
-    private static final ThreadLocal<Browser> browser = new ThreadLocal<>();
-    private static final ThreadLocal<BrowserContext> context = new ThreadLocal<>();
-    private static final ThreadLocal<Page> page = new ThreadLocal<>();
+    private static final ThreadLocal<Playwright> PLAYWRIGHT = new ThreadLocal<>();
+    private static final ThreadLocal<Browser> BROWSER = new ThreadLocal<>();
+    private static final ThreadLocal<BrowserContext> CONTEXT = new ThreadLocal<>();
+    private static final ThreadLocal<Page> PAGE = new ThreadLocal<>();
     
     private static ConfigurationManager config = ConfigurationManager.getInstance();
     
     /**
-     * Initialize Playwright and create browser
+     * Initialize Playwright and create BROWSER
      */
     public static void initializeBrowser() {
-        initializeBrowser(BrowserEngine.valueOf(config.getBrowser().toUpperCase()));
+        initializeBrowser(BrowserEngine.valueOf(config.getBrowser().toUpperCase(java.util.Locale.ROOT)));
     }
     
     public static void initializeBrowser(BrowserEngine  browserEngine) {
@@ -38,9 +43,9 @@ public class PlaywrightManager {
         try {
             // Create Playwright instance
             Playwright pw = Playwright.create();
-            playwright.set(pw);
+            PLAYWRIGHT.set(pw);
 
-            // Launch browser
+            // Launch BROWSER
             Browser.NewContextOptions contextOptions = new Browser.NewContextOptions()
                     .setViewportSize(1920, 1080)
                     .setAcceptDownloads(true);
@@ -65,24 +70,24 @@ public class PlaywrightManager {
                     br = pw.webkit().launch(launchOptions);
                     break;
                 default:
-                    br = pw.chromium().launch(launchOptions);
+                    throw new IllegalArgumentException("Unsupported browser engine: " + browserEngine);
             }
 
-            browser.set(br);
+            BROWSER.set(br);
 
-            // Create context
+            // Create CONTEXT
             BrowserContext ctx = br.newContext(contextOptions);
-            context.set(ctx);
+            CONTEXT.set(ctx);
 
-            // Create page
+            // Create PAGE
             Page pg = ctx.newPage();
             pg.setDefaultTimeout(config.getTimeout());
-            page.set(pg);
+            PAGE.set(pg);
 
-            log.info("Playwright browser initialized: engine={}, channel={}", browserEngine, channel);
+            log.info("Playwright BROWSER initialized: engine={}, channel={}", browserEngine, channel);
 
         } catch (Exception e) {
-            log.error("Error initializing Playwright browser", e);
+            log.error("Error initializing Playwright BROWSER", e);
             throw e;
         }
     }
@@ -91,35 +96,35 @@ public class PlaywrightManager {
      * Get current Playwright instance
      */
     public static Playwright getPlaywright() {
-        return playwright.get();
+        return PLAYWRIGHT.get();
     }
     
     /**
-     * Get current browser instance
+     * Get current BROWSER instance
      */
     public static Browser getBrowser() {
-        return browser.get();
+        return BROWSER.get();
     }
     
     /**
-     * Get current context
+     * Get current CONTEXT
      */
     public static BrowserContext getContext() {
-        return context.get();
+        return CONTEXT.get();
     }
     
     /**
-     * Get current page
+     * Get current PAGE
      */
     public static Page getPage() {
-        if (page.get() == null) {
+        if (PAGE.get() == null) {
             createNewPage();
         }
-        return page.get();
+        return PAGE.get();
     }
     
     /**
-     * Create a new page in the current context
+     * Create a new page in the current CONTEXT
      */
     public static Page createNewPage() {
         BrowserContext ctx = getContext();
@@ -129,54 +134,54 @@ public class PlaywrightManager {
         }
         Page newPage = ctx.newPage();
         newPage.setDefaultTimeout(config.getTimeout());
-        page.set(newPage);
+        PAGE.set(newPage);
         return newPage;
     }
     
     /**
-     * Close current page
+     * Close current PAGE
      */
     public static void closePage() {
-        Page pg = page.get();
+        Page pg = PAGE.get();
         if (pg != null) {
             pg.close();
-            page.remove();
+            PAGE.remove();
         }
     }
     
     /**
-     * Close browser and cleanup
+     * Close BROWSER and cleanup
      */
     public static void closeBrowser() {
         try {
-            Page pg = page.get();
+            Page pg = PAGE.get();
             if (pg != null) {
                 pg.close();
-                page.remove();
+                PAGE.remove();
             }
             
-            BrowserContext ctx = context.get();
+            BrowserContext ctx = CONTEXT.get();
             if (ctx != null) {
                 ctx.close();
-                context.remove();
+                CONTEXT.remove();
             }
             
-            Browser br = browser.get();
+            Browser br = BROWSER.get();
             if (br != null) {
                 br.close();
-                browser.remove();
+                BROWSER.remove();
             }
             
-            Playwright pw = playwright.get();
+            Playwright pw = PLAYWRIGHT.get();
             if (pw != null) {
                 pw.close();
-                playwright.remove();
+                PLAYWRIGHT.remove();
             }
             
-            log.info("Playwright browser closed");
+            log.info("Playwright BROWSER closed");
             
         } catch (Exception e) {
-            log.error("Error closing Playwright browser", e);
+            log.error("Error closing Playwright BROWSER", e);
         }
     }
     

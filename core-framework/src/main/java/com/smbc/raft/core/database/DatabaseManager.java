@@ -6,8 +6,16 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
 
-import java.sql.*;
-import java.util.*;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -17,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 @Log4j2
 public class DatabaseManager {
 
-    private static final Map<String, DatabaseManager> instances = new HashMap<>();
+    private static final Map<String, DatabaseManager> INSTANCES = new HashMap<>();
     private HikariDataSource dataSource;
     private final String connectionName;
 
@@ -38,7 +46,7 @@ public class DatabaseManager {
      * Get database manager instance for named connection
      */
     public static synchronized DatabaseManager getInstance(String connectionName) {
-        if (!instances.containsKey(connectionName)) {
+        if (!INSTANCES.containsKey(connectionName)) {
             ConfigurationManager config = ConfigurationManager.getInstance();
             String prefix = connectionName.equals("default") ? "db" : "db." + connectionName;
 
@@ -52,10 +60,10 @@ public class DatabaseManager {
                     "Database configuration not found for: " + connectionName);
             }
 
-            instances.put(connectionName,
+            INSTANCES.put(connectionName,
                 new DatabaseManager(connectionName, dbType, url, username, password));
         }
-        return instances.get(connectionName);
+        return INSTANCES.get(connectionName);
     }
 
     /**
@@ -235,7 +243,7 @@ public class DatabaseManager {
      * Close all database connections
      */
     public static void closeAll() {
-        instances.values().forEach(m -> {
+        INSTANCES.values().forEach(m -> {
             try {
                 if (m.dataSource != null && !m.dataSource.isClosed()) {
                     m.dataSource.close();
@@ -245,7 +253,7 @@ public class DatabaseManager {
                 log.error("Error closing pool: {}", m.connectionName, e);
             }
         });
-        instances.clear();
+        INSTANCES.clear();
     }
 
     /**
@@ -254,7 +262,7 @@ public class DatabaseManager {
     public void close() {
         if (dataSource != null && !dataSource.isClosed()) {
             dataSource.close();
-            instances.remove(connectionName);
+            INSTANCES.remove(connectionName);
             log.info("Database pool closed: {}", connectionName);
         }
     }

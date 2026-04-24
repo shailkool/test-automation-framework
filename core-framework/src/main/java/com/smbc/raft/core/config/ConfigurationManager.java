@@ -13,7 +13,7 @@ import java.util.Properties;
 @Log4j2
 public class ConfigurationManager {
     
-    private static ConfigurationManager instance;
+    private static volatile ConfigurationManager instance;
     private Properties properties;
     private String environment;
     

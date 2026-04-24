@@ -8,7 +8,13 @@ import lombok.extern.log4j.Log4j2;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Utility class for handling CSV file operations
@@ -335,7 +341,7 @@ public class CSVHandler {
         for (String[] row : data) {
             boolean found = false;
             for (String cell : row) {
-                if (cell != null && cell.toLowerCase().contains(searchTerm.toLowerCase())) {
+                if (cell != null && cell.toLowerCase(java.util.Locale.ROOT).contains(searchTerm.toLowerCase(java.util.Locale.ROOT))) {
                     found = true;
                     break;
                 }

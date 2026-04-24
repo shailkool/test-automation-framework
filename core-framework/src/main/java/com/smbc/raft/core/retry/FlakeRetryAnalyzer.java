@@ -54,7 +54,7 @@ public class FlakeRetryAnalyzer implements IRetryAnalyzer {
      * Per-test attempt counter. Keyed by "ClassName#methodName" so parallel
      * threads each maintain their own count without contention.
      */
-    private static final ConcurrentMap<String, Integer> attemptCounts =
+    private static final ConcurrentMap<String, Integer> ATTEMPT_COUNTS =
             new ConcurrentHashMap<>();
 
     @Override
@@ -78,7 +78,7 @@ public class FlakeRetryAnalyzer implements IRetryAnalyzer {
         }
 
         String key = key(result);
-        int attempts = attemptCounts.merge(key, 1, Integer::sum);
+        int attempts = ATTEMPT_COUNTS.merge(key, 1, Integer::sum);
 
         if (attempts <= MAX_ATTEMPTS) {
             log.warn("Retrying [{}/{}] {} — transient failure: {}",
@@ -87,7 +87,7 @@ public class FlakeRetryAnalyzer implements IRetryAnalyzer {
         }
 
         // Exhausted retries — clean up counter and let the failure propagate
-        attemptCounts.remove(key);
+        ATTEMPT_COUNTS.remove(key);
         log.warn("Giving up on {} after {} attempt(s). Final exception: {}",
                 key, attempts, cause.getMessage());
         return false;

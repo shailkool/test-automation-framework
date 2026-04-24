@@ -1,13 +1,20 @@
 package com.smbc.raft.tests.diff;
 
 import com.smbc.raft.core.data.CSVHandler;
-import com.smbc.raft.core.diff.*;
+import com.smbc.raft.core.diff.DataDiff;
+import com.smbc.raft.core.diff.DiffHtmlReportGenerator;
+import com.smbc.raft.core.diff.DiffResult;
+import com.smbc.raft.core.diff.DiffSummary;
 import com.smbc.raft.core.reporting.ExtentReportManager;
 import com.smbc.raft.core.utils.BaseTest;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Examples demonstrating data diff and HTML report generation

@@ -1,7 +1,11 @@
 package com.smbc.raft.core.data;
 
 import lombok.extern.log4j.Log4j2;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -12,7 +16,7 @@ import java.util.regex.Pattern;
 @Log4j2
 public class DynamicDataResolver {
     
-    private static final ThreadLocal<Map<String, Map<String, String>>> store = ThreadLocal.withInitial(HashMap::new);
+    private static final ThreadLocal<Map<String, Map<String, String>>> STORE = ThreadLocal.withInitial(HashMap::new);
     private static final Pattern VAR_PATTERN = Pattern.compile("\\$\\{([^\\.]+)\\.([^\\}]+)\\}");
 
     /**
@@ -20,7 +24,7 @@ public class DynamicDataResolver {
      */
     public static void storeData(String id, Map<String, String> data) {
         if (id == null || data == null) return;
-        store.get().put(id, data);
+        STORE.get().put(id, data);
         log.debug("Stored dynamic data for ID: {}", id);
     }
 
@@ -28,7 +32,7 @@ public class DynamicDataResolver {
      * Clears all stored data for the current thread.
      */
     public static void clear() {
-        store.get().clear();
+        STORE.get().clear();
     }
 
     /**
@@ -49,7 +53,7 @@ public class DynamicDataResolver {
             String id = matcher.group(1);
             String fieldName = matcher.group(2);
             
-            Map<String, String> data = store.get().get(id);
+            Map<String, String> data = STORE.get().get(id);
             if (data != null && data.containsKey(fieldName)) {
                 String value = data.get(fieldName);
                 sb.append(value);

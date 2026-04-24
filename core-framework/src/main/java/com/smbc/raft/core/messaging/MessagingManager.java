@@ -4,8 +4,8 @@ import com.smbc.raft.core.messaging.jms.JmsMessageClient;
 import com.smbc.raft.core.messaging.kafka.KafkaMessageClient;
 import lombok.extern.log4j.Log4j2;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * Registry of reusable Kafka and JMS clients keyed by configuration name.
@@ -16,8 +16,8 @@ import java.util.concurrent.ConcurrentMap;
 @Log4j2
 public final class MessagingManager {
 
-    private static final ConcurrentMap<String, KafkaMessageClient> kafkaClients = new ConcurrentHashMap<>();
-    private static final ConcurrentMap<String, JmsMessageClient> jmsClients = new ConcurrentHashMap<>();
+    private static final Map<String, KafkaMessageClient> KAFKA_CLIENTS = new ConcurrentHashMap<>();
+    private static final Map<String, JmsMessageClient> JMS_CLIENTS = new ConcurrentHashMap<>();
 
     private MessagingManager() {
     }
@@ -27,7 +27,7 @@ public final class MessagingManager {
     }
 
     public static KafkaMessageClient kafka(String clientName) {
-        return kafkaClients.computeIfAbsent(clientName, KafkaMessageClient::new);
+        return KAFKA_CLIENTS.computeIfAbsent(clientName, KafkaMessageClient::new);
     }
 
     public static JmsMessageClient jms() {
@@ -35,7 +35,7 @@ public final class MessagingManager {
     }
 
     public static JmsMessageClient jms(String clientName) {
-        return jmsClients.computeIfAbsent(clientName, JmsMessageClient::new);
+        return JMS_CLIENTS.computeIfAbsent(clientName, JmsMessageClient::new);
     }
 
     /**
@@ -43,7 +43,7 @@ public final class MessagingManager {
      * for unit tests). Replaces any existing client with the same name.
      */
     public static void registerKafka(String clientName, KafkaMessageClient client) {
-        KafkaMessageClient previous = kafkaClients.put(clientName, client);
+        KafkaMessageClient previous = KAFKA_CLIENTS.put(clientName, client);
         if (previous != null) {
             previous.close();
         }
@@ -53,21 +53,21 @@ public final class MessagingManager {
      * Register an externally-built JMS client. Replaces any existing client.
      */
     public static void registerJms(String clientName, JmsMessageClient client) {
-        JmsMessageClient previous = jmsClients.put(clientName, client);
+        JmsMessageClient previous = JMS_CLIENTS.put(clientName, client);
         if (previous != null) {
             previous.close();
         }
     }
 
     public static void closeKafka(String clientName) {
-        KafkaMessageClient client = kafkaClients.remove(clientName);
+        KafkaMessageClient client = KAFKA_CLIENTS.remove(clientName);
         if (client != null) {
             client.close();
         }
     }
 
     public static void closeJms(String clientName) {
-        JmsMessageClient client = jmsClients.remove(clientName);
+        JmsMessageClient client = JMS_CLIENTS.remove(clientName);
         if (client != null) {
             client.close();
         }
@@ -77,22 +77,22 @@ public final class MessagingManager {
      * Close every registered Kafka and JMS client.
      */
     public static void closeAll() {
-        kafkaClients.values().forEach(client -> {
+        KAFKA_CLIENTS.values().forEach(client -> {
             try {
                 client.close();
             } catch (Exception e) {
                 log.warn("Error closing Kafka client", e);
             }
         });
-        kafkaClients.clear();
+        KAFKA_CLIENTS.clear();
 
-        jmsClients.values().forEach(client -> {
+        JMS_CLIENTS.values().forEach(client -> {
             try {
                 client.close();
             } catch (Exception e) {
                 log.warn("Error closing JMS client", e);
             }
         });
-        jmsClients.clear();
+        JMS_CLIENTS.clear();
     }
 }
