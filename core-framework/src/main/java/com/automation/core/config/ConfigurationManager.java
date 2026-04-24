@@ -74,11 +74,30 @@ public class ConfigurationManager {
     }
     
     public String getProperty(String key) {
-        return properties.getProperty(key);
+        return resolvePlaceholders(properties.getProperty(key));
     }
     
     public String getProperty(String key, String defaultValue) {
-        return properties.getProperty(key, defaultValue);
+        return resolvePlaceholders(properties.getProperty(key, defaultValue));
+    }
+
+    /**
+     * Resolves placeholders in the form of ${ENV_VAR_NAME} using environment variables.
+     */
+    private String resolvePlaceholders(String value) {
+        if (value != null && value.contains("${") && value.contains("}")) {
+            int start = value.indexOf("${");
+            int end = value.indexOf("}", start);
+            if (end != -1) {
+                String placeholder = value.substring(start + 2, end);
+                String envValue = System.getenv(placeholder);
+                if (envValue != null) {
+                    String resolved = value.substring(0, start) + envValue + value.substring(end + 1);
+                    return resolvePlaceholders(resolved); // Recursive for multiple placeholders
+                }
+            }
+        }
+        return value;
     }
     
     public int getIntProperty(String key, int defaultValue) {

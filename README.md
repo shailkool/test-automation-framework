@@ -257,6 +257,31 @@ mvn allure:serve
 - Property file hierarchy
 - System property override
 
+## Docker Execution Architecture
+
+The framework is fully containerized to ensure consistent execution across local development and CI/CD environments.
+
+![Docker Architecture](docs/images/docker_architecture.png)
+
+### Container Strategy
+*   **Multi-Stage Build**: Optimized `Dockerfile` that caches Maven dependencies and provides a lean runtime environment with all Playwright system dependencies.
+*   **Headless Execution**: Pre-configured for headless Chromium runs in Linux-based containers.
+*   **Parallel Sharding**: Support for sharded execution via Docker Compose to scale regression suites across multiple containers.
+*   **Security**: Integrated environment variable interpolation for secure credential management (secrets never baked into the image).
+
+### Quick Start with Docker
+```bash
+# Build the automation image
+docker build -t test-automation:latest .
+
+# Run the smoke suite against QA
+docker run --rm \
+  -v $(pwd)/workspace:/workspace \
+  -e ENV=qa \
+  -e DB_PASSWORD=your_password \
+  test-automation:latest
+```
+
 ## Writing Tests
 
 ### UI Test Example

@@ -1,0 +1,88 @@
+version: "3.9"
+
+x-test-base: &test-base
+  image: ${IMAGE_NAME:-test-automation}:${IMAGE_TAG:-latest}
+  volumes:
+    - workspace:/workspace
+  environment:
+    WORKSPACE: /workspace
+    # These come from CI secret store or environment
+    ENV:        ${ENV:-qa}
+    APP_URL:    ${APP_URL}
+    API_URL:    ${API_URL}
+    DB_URL:     ${DB_URL}
+    DB_USER:    ${DB_USER}
+    DB_PASS:    ${DB_PASS}
+  networks:
+    - test-net
+
+services:
+
+  # ── Smoke suite — runs on every PR, target < 5 min ────────────────────────
+  smoke:
+    <<: *test-base
+    container_name: smoke
+    command: >
+      mvn test
+        -pl application-tests
+        -Dprofile=ci
+        -Denv=${ENV:-qa}
+        -Dsurefire.suiteXmlFiles=src/test/resources/smoke.xml
+        --no-transfer-progress
+
+  # ── Regression shard 1 of 3 — runs on merge to main ──────────────────────
+  regression-shard-1:
+    <<: *test-base
+    container_name: regression-shard-1
+    command: >
+      mvn test
+        -pl application-tests
+        -Dprofile=ci
+        -Denv=${ENV:-qa}
+        -DthreadCount=12
+        -Dsurefire.suiteXmlFiles=src/test/resources/regression-shard-1.xml
+        --no-transfer-progress
+
+  regression-shard-2:
+    <<: *test-base
+    container_name: regression-shard-2
+    command: >
+      mvn test
+        -pl application-tests
+        -Dprofile=ci
+        -Denv=${ENV:-qa}
+        -DthreadCount=12
+        -Dsurefire.suiteXmlFiles=src/test/resources/regression-shard-2.xml
+        --no-transfer-progress
+
+  regression-shard-3:
+    <<: *test-base
+    container_name: regression-shard-3
+    command: >
+      mvn test
+        -pl application-tests
+        -Dprofile=ci
+        -Denv=${ENV:-qa}
+        -DthreadCount=12
+        -Dsurefire.suiteXmlFiles=src/test/resources/regression-shard-3.xml
+        --no-transfer-progress
+
+  # ── Nightly — all tests including messaging ───────────────────────────────
+  nightly:
+    <<: *test-base
+    container_name: nightly
+    command: >
+      mvn test
+        -pl application-tests
+        -Dprofile=ci
+        -Denv=${ENV:-qa}
+        -DthreadCount=16
+        -Dsurefire.suiteXmlFiles=src/test/resources/nightly.xml
+        --no-transfer-progress
+
+volumes:
+  workspace:
+
+networks:
+  test-net:
+    driver: bridge

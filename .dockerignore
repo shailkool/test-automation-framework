@@ -1,0 +1,23 @@
+# Build outputs
+**/target/
+**/node_modules/
+
+# Test artefacts — never needed inside the image
+**/extent-reports/
+**/allure-results/
+**/allure-report/
+**/screenshots/
+**/videos/
+**/surefire-reports/
+**/logs/
+
+# IDE and OS noise
+.idea/
+*.iml
+.DS_Store
+.git/
+**/.gitkeep
+
+# Local config overrides — secrets must come from CI, not the image
+**/config-local.properties
+**/*.local.properties
