@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.automation</groupId>
+        <groupId>com.smbc.raft</groupId>
         <artifactId>test-automation-framework</artifactId>
         <version>1.0.0</version>
     </parent>
@@ -31,13 +31,13 @@
     <dependencies>
         <!-- Application Automation Layer -->
         <dependency>
-            <groupId>com.automation</groupId>
+            <groupId>com.smbc.raft</groupId>
             <artifactId>application-automation</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>com.automation</groupId>
+            <groupId>com.smbc.raft</groupId>
             <artifactId>core-framework</artifactId>
             <version>${project.version}</version>
         </dependency>

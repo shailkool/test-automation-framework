@@ -27,7 +27,7 @@
             <AppenderRef ref="File"/>
         </Root>
         
-        <Logger name="com.automation" level="debug" additivity="false">
+        <Logger name="com.smbc.raft" level="debug" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="File"/>
         </Logger>

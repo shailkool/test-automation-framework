@@ -5,7 +5,7 @@
 
     <listeners>
         <listener class-name="io.qameta.allure.testng.AllureTestNg"/>
-        <listener class-name="com.automation.core.retry.FlakeRetryListener"/>
+        <listener class-name="com.smbc.raft.core.retry.FlakeRetryListener"/>
     </listeners>
 
     <test name="Framework Config">
@@ -13,7 +13,7 @@
             <run><include name="smoke"/><include name="regression"/></run>
         </groups>
         <classes>
-            <class name="com.automation.tests.environment.EnvironmentContextTest"/>
+            <class name="com.smbc.raft.tests.environment.EnvironmentContextTest"/>
         </classes>
     </test>
 
@@ -22,8 +22,8 @@
             <run><include name="smoke"/><include name="regression"/></run>
         </groups>
         <classes>
-            <class name="com.automation.tests.api.UserApiTest"/>
-            <class name="com.automation.tests.api.DataDrivenUserApiTest"/>
+            <class name="com.smbc.raft.tests.api.UserApiTest"/>
+            <class name="com.smbc.raft.tests.api.DataDrivenUserApiTest"/>
         </classes>
     </test>
 
@@ -32,7 +32,7 @@
             <run><include name="smoke"/><include name="regression"/></run>
         </groups>
         <classes>
-            <class name="com.automation.tests.database.UserDatabaseTest"/>
+            <class name="com.smbc.raft.tests.database.UserDatabaseTest"/>
         </classes>
     </test>
 
@@ -42,7 +42,7 @@
             <run><include name="regression"/></run>
         </groups>
         <classes>
-            <class name="com.automation.tests.integration.UserEndToEndTest"/>
+            <class name="com.smbc.raft.tests.integration.UserEndToEndTest"/>
         </classes>
     </test>
 

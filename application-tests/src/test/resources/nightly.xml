@@ -5,7 +5,7 @@
 
     <listeners>
         <listener class-name="io.qameta.allure.testng.AllureTestNg"/>
-        <listener class-name="com.automation.core.retry.FlakeRetryListener"/>
+        <listener class-name="com.smbc.raft.core.retry.FlakeRetryListener"/>
     </listeners>
 
     <!-- All regression tests -->
@@ -17,12 +17,12 @@
             </run>
         </groups>
         <packages>
-            <package name="com.automation.tests.api"/>
-            <package name="com.automation.tests.database"/>
-            <package name="com.automation.tests.ui"/>
-            <package name="com.automation.tests.environment"/>
-            <package name="com.automation.tests.retry"/>
-            <package name="com.automation.tests.validation"/>
+            <package name="com.smbc.raft.tests.api"/>
+            <package name="com.smbc.raft.tests.database"/>
+            <package name="com.smbc.raft.tests.ui"/>
+            <package name="com.smbc.raft.tests.environment"/>
+            <package name="com.smbc.raft.tests.retry"/>
+            <package name="com.smbc.raft.tests.validation"/>
         </packages>
     </test>
 
@@ -35,7 +35,7 @@
             </run>
         </groups>
         <classes>
-            <class name="com.automation.tests.integration.UserEndToEndTest"/>
+            <class name="com.smbc.raft.tests.integration.UserEndToEndTest"/>
         </classes>
     </test>
 
@@ -45,7 +45,7 @@
             <run><include name="kafka"/><include name="nightly"/></run>
         </groups>
         <classes>
-            <class name="com.automation.tests.messaging.KafkaMessagingTest"/>
+            <class name="com.smbc.raft.tests.messaging.KafkaMessagingTest"/>
         </classes>
     </test>
 
@@ -54,7 +54,7 @@
             <run><include name="jms"/><include name="nightly"/></run>
         </groups>
         <classes>
-            <class name="com.automation.tests.messaging.JmsMessagingTest"/>
+            <class name="com.smbc.raft.tests.messaging.JmsMessagingTest"/>
         </classes>
     </test>
 

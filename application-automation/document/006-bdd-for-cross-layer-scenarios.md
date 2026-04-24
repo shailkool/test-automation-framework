@@ -113,7 +113,7 @@ tag expression is injected via `-Dcucumber.filter.tags`.
   convention, not by tooling. Without discipline, teams will write BDD tests for
   low-level API checks where plain TestNG is more appropriate.
 - Each new feature area requires a new step definitions class in
-  `com.automation.tests.bdd.steps` and a corresponding `glue` package entry in
+  `com.smbc.raft.tests.bdd.steps` and a corresponding `glue` package entry in
   `TaggedCucumberRunner`. Forgetting to update `glue` causes
   `UndefinedStepException` at runtime.
 - The Masterthought report is generated as a JVM shutdown hook — if the JVM is

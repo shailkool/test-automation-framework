@@ -259,7 +259,7 @@ Edit: `application-tests/src/test/resources/testng.xml`
 ```xml
 <test name="My Tests">
     <classes>
-        <class name="com.automation.tests.ui.MyTest"/>
+        <class name="com.smbc.raft.tests.ui.MyTest"/>
     </classes>
 </test>
 ```

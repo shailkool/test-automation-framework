@@ -129,12 +129,12 @@ Pass a comma-separated list — matching is by the concatenation of the values:
 ## 2. Java API
 
 The CLI is a thin wrapper around `DataDiff`, `DirectoryDiff`, and
-`DiffHtmlReportGenerator` in `com.automation.core.diff`.
+`DiffHtmlReportGenerator` in `com.smbc.raft.core.diff`.
 
 ### File-level comparison
 
 ```java
-import com.automation.core.diff.*;
+import com.smbc.raft.core.diff.*;
 
 List<Map<String, String>> expected = /* load from anywhere */;
 List<Map<String, String>> actual   = /* load from anywhere */;
