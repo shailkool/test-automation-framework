@@ -1,4 +1,4 @@
-package com.smbc.raft.tests.bdd.runner;
+package com.smbc.raft.core.bdd.runner;
 
 import com.smbc.raft.core.environment.EnvironmentContext;
 import com.smbc.raft.core.runprofile.RunProfile;
@@ -29,7 +29,7 @@ import java.util.List;
  * failing the build.
  */
 @Log4j2
-final class MasterthoughtReportGenerator {
+public final class MasterthoughtReportGenerator {
 
     private static final String JSON_PATH = "test-output/cucumber/cucumber.json";
     /**
@@ -47,7 +47,7 @@ final class MasterthoughtReportGenerator {
     }
 
     /** Register a one-shot shutdown hook that invokes {@link #generate()}. */
-    static synchronized void registerShutdownHook() {
+    public static synchronized void registerShutdownHook() {
         if (registered) {
             return;
         }
@@ -58,7 +58,7 @@ final class MasterthoughtReportGenerator {
         registered = true;
     }
 
-    static void generate() {
+    public static void generate() {
         Path json = Path.of(JSON_PATH);
         if (!Files.exists(json)) {
             log.warn("Skipping masterthought report: {} does not exist", json.toAbsolutePath());

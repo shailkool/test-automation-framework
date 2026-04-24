@@ -1,6 +1,5 @@
-package com.smbc.raft.tests.data;
+package com.smbc.raft.core.data;
 
-import com.smbc.raft.core.data.CSVHandler;
 import com.smbc.raft.core.reporting.ExtentReportManager;
 import com.smbc.raft.core.utils.BaseTest;
 import org.testng.Assert;

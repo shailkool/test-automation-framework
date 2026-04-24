@@ -76,7 +76,7 @@ mvn test -Dtest=LoginUITest
 
 ### Option 2: Run from IDE (IntelliJ IDEA)
 1. Open project in IntelliJ IDEA
-2. Navigate to `app-tests/src/test/java/com/tests/ui/LoginUITest.java`
+2. Navigate to `app-tests/src/test/java/com/smbc/raft/tests/ui/LoginUITest.java`
 3. Right-click on the test class
 4. Select "Run LoginUITest"
 
@@ -106,12 +106,12 @@ open target/site/surefire-report.html
 ## Creating Your First Test
 
 ### Step 1: Create a New Page Object
-Create `app-automation/src/main/java/com/app/pages/ProductPage.java`:
+Create `app-automation/src/main/java/com/smbc/raft/app/pages/ProductPage.java`:
 
 ```java
-package com.app.pages;
+package com.smbc.raft.app.pages;
 
-import com.framework.ui.BasePage;
+import com.smbc.raft.core.ui.BasePage;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
@@ -132,14 +132,14 @@ public class ProductPage extends BasePage {
 ```
 
 ### Step 2: Create a New Test
-Create `app-tests/src/test/java/com/tests/ui/ProductUITest.java`:
+Create `app-tests/src/test/java/com/smbc/raft/tests/ui/ProductUITest.java`:
 
 ```java
-package com.tests.ui;
+package com.smbc.raft.tests.ui;
 
-import com.app.pages.ProductPage;
-import com.framework.base.BaseTest;
-import com.framework.ui.PlaywrightManager;
+import com.smbc.raft.app.pages.ProductPage;
+import com.smbc.raft.core.base.BaseTest;
+import com.smbc.raft.core.ui.PlaywrightManager;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -172,7 +172,7 @@ Edit `app-tests/src/test/resources/testng.xml`:
 ```xml
 <test name="Product Tests">
     <classes>
-        <class name="com.tests.ui.ProductUITest"/>
+        <class name="com.smbc.raft.tests.ui.ProductUITest"/>
     </classes>
 </test>
 ```
@@ -180,12 +180,12 @@ Edit `app-tests/src/test/resources/testng.xml`:
 ## Creating Your First API Test
 
 ### Step 1: Create API Client
-Create `app-automation/src/main/java/com/app/api/ProductApiClient.java`:
+Create `app-automation/src/main/java/com/smbc/raft/app/api/ProductApiClient.java`:
 
 ```java
-package com.app.api;
+package com.smbc.raft.app.api;
 
-import com.framework.api.RestAssuredClient;
+import com.smbc.raft.core.api.RestAssuredClient;
 import io.restassured.response.Response;
 
 public class ProductApiClient {
@@ -202,13 +202,13 @@ public class ProductApiClient {
 ```
 
 ### Step 2: Create API Test
-Create `app-tests/src/test/java/com/tests/api/ProductApiTest.java`:
+Create `app-tests/src/test/java/com/smbc/raft/tests/api/ProductApiTest.java`:
 
 ```java
-package com.tests.api;
+package com.smbc.raft.tests.api;
 
-import com.app.api.ProductApiClient;
-import com.framework.base.BaseTest;
+import com.smbc.raft.app.api.ProductApiClient;
+import com.smbc.raft.core.base.BaseTest;
 import io.restassured.response.Response;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -229,13 +229,13 @@ public class ProductApiTest extends BaseTest {
 ## Creating Your First Database Test
 
 ### Step 1: Create Database Queries
-Create `app-automation/src/main/java/com/app/database/ProductDatabaseQueries.java`:
+Create `app-automation/src/main/java/com/smbc/raft/app/database/ProductDatabaseQueries.java`:
 
 ```java
-package com.app.database;
+package com.smbc.raft.app.database;
 
-import com.framework.database.DatabaseManager;
-import com.framework.database.DatabaseManager.DatabaseType;
+import com.smbc.raft.core.database.DatabaseManager;
+import com.smbc.raft.core.database.DatabaseManager.DatabaseType;
 import java.util.List;
 import java.util.Map;
 
@@ -258,14 +258,14 @@ public class ProductDatabaseQueries {
 ```
 
 ### Step 2: Create Database Test
-Create `app-tests/src/test/java/com/tests/integration/ProductDatabaseTest.java`:
+Create `app-tests/src/test/java/com/smbc/raft/tests/integration/ProductDatabaseTest.java`:
 
 ```java
-package com.tests.integration;
+package com.smbc.raft.tests.integration;
 
-import com.app.database.ProductDatabaseQueries;
-import com.framework.base.BaseTest;
-import com.framework.database.DatabaseManager.DatabaseType;
+import com.smbc.raft.app.database.ProductDatabaseQueries;
+import com.smbc.raft.core.base.BaseTest;
+import com.smbc.raft.core.database.DatabaseManager.DatabaseType;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import java.util.Map;
@@ -366,7 +366,7 @@ mvn clean install -U
 ## Next Steps
 
 1. **Read Architecture Documentation**: `ARCHITECTURE.md`
-2. **Review Example Tests**: Check tests in `app-tests/src/test/java/com/tests/`
+2. **Review Example Tests**: Check tests in `app-tests/src/test/java/com/smbc/raft/tests/`
 3. **Customize for Your Application**: Modify page objects, API clients, and database queries
 4. **Add Your Tests**: Create new test classes following the examples
 5. **Configure CI/CD**: Integrate with your CI/CD pipeline

@@ -105,5 +105,5 @@ the DBCP2 dependency from `core-framework/pom.xml`. The public API of
 ## References
 
 - [HikariCP GitHub](https://github.com/brettwooldridge/HikariCP)
-- `core-framework/src/main/java/com/automation/core/database/DatabaseManager.java`
+- `core-framework/src/main/java/com/smbc/raft/core/database/DatabaseManager.java`
 - `core-framework/src/main/resources/config/default.properties`

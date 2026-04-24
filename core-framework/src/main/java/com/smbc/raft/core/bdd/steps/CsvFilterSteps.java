@@ -1,4 +1,4 @@
-package com.smbc.raft.tests.bdd.steps;
+package com.smbc.raft.core.bdd.steps;
 
 import com.smbc.raft.core.data.CentralTestContext;
 import com.smbc.raft.core.data.DynamicDataResolver;

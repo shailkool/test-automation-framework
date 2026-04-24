@@ -10,51 +10,51 @@ The foundational layer that provides reusable components and utilities.
 
 #### Components:
 
-**Configuration Management** (`com.framework.config`)
+**Configuration Management** (`com.smbc.raft.core.config`)
 - `ConfigManager.java` - Centralized configuration handling
 - Supports multiple environments (QA, UAT, PROD)
 - Loads properties from files and system properties
 - Provides type-safe getters for common configurations
 
-**Database Management** (`com.framework.database`)
+**Database Management** (`com.smbc.raft.core.database`)
 - `DatabaseManager.java` - Multi-database support with connection pooling
 - Supported databases: Oracle, MS SQL Server, PostgreSQL, MySQL
 - Uses HikariCP for efficient connection pooling
 - Provides methods for queries, updates, and stored procedures
 - Thread-safe singleton implementation
 
-**UI Automation** (`com.framework.ui`)
+**UI Automation** (`com.smbc.raft.core.ui`)
 - `PlaywrightManager.java` - Manages Playwright browser instances
 - `BasePage.java` - Base class for Page Objects with common methods
 - Supports Chromium, Firefox, and WebKit
 - Thread-safe browser management
 - Built-in screenshot capabilities
 
-**API Testing** (`com.framework.api`)
+**API Testing** (`com.smbc.raft.core.api`)
 - `RestAssuredClient.java` - REST API testing client
 - Fluent API for building requests
 - Built-in authentication support (Basic, OAuth2)
 - JSON serialization/deserialization
 - Request/response logging
 
-**Reporting** (`com.framework.reporting`)
+**Reporting** (`com.smbc.raft.core.reporting`)
 - `ExtentReportManager.java` - HTML report generation
 - Screenshot attachment on failures
 - Test categorization and metadata
 - Thread-safe report management
 
-**Test Data Registry** (`com.framework.data`)
+**Test Data Registry** (`com.smbc.raft.core.data`)
 - `TestDataRegistry.java` - Thread-safe tracking of test data for automatic cleanup
 - Uses LIFO stack for teardown actions
 - Integrated into `BaseTest` lifecycle
 
-**Base Classes** (`com.framework.base`)
+**Base Classes** (`com.smbc.raft.core.base`)
 - `BaseTest.java` - Base test class with TestNG hooks
 - Automatic setup and teardown
 - Automatic test data cleanup via `TestDataRegistry`
 - Failure screenshot capture
 
-**Utilities** (`com.framework.utils`)
+**Utilities** (`com.smbc.raft.core.utils`)
 - `DataUtils.java` - Test data handling
 - JSON and Excel file reading
 - Random data generation
@@ -65,28 +65,28 @@ Application-specific implementations that extend the core framework.
 
 #### Components:
 
-**Page Objects** (`com.app.pages`)
+**Page Objects** (`com.smbc.raft.app.pages`)
 - `LoginPage.java` - Login functionality
 - `HomePage.java` - Home page interactions
 - Implements Page Object Model pattern
 - Extends `BasePage` from core framework
 
-**API Clients** (`com.app.api`)
+**API Clients** (`com.smbc.raft.app.api`)
 - `UserApiClient.java` - User management API endpoints
 - Encapsulates API logic for specific features
 - Built on `RestAssuredClient` from core framework
 
-**Database Queries** (`com.app.database`)
+**Database Queries** (`com.smbc.raft.app.database`)
 - `UserDatabaseQueries.java` - User-related database operations
 - Application-specific SQL queries
 - Data access layer for test data setup and verification
 
-**Workflows** (`com.app.workflows`)
+**Workflows** (`com.smbc.raft.app.workflows`)
 - `UserWorkflow.java` - Business process workflows
 - Combines UI, API, and Database operations
 - Reusable business logic for tests
 
-**Data Fixtures** (`com.app.fixtures`)
+**Data Fixtures** (`com.smbc.raft.app.fixtures`)
 - `UserFixture.java` - Domain-specific data builders
 - `TestDataFactory.java` - Central entry point for creating test data
 - Automatic registration for cleanup via Core Framework
@@ -96,22 +96,22 @@ Actual test implementations organized by type.
 
 #### Test Types:
 
-**UI Tests** (`com.tests.ui`)
+**UI Tests** (`com.smbc.raft.tests.ui`)
 - End-user interface testing
 - Uses Page Objects from Layer 2
 - Example: `LoginUITest.java`
 
-**API Tests** (`com.tests.api`)
+**API Tests** (`com.smbc.raft.tests.api`)
 - REST API endpoint testing
 - Uses API Clients from Layer 2
 - Example: `UserApiTest.java`
 
-**Database Tests** (`com.tests.integration`)
+**Database Tests** (`com.smbc.raft.tests.integration`)
 - Database integration testing
 - Direct database verification
 - Example: `UserDatabaseTest.java`
 
-**End-to-End Tests** (`com.tests.integration`)
+**End-to-End Tests** (`com.smbc.raft.tests.integration`)
 - Complete business scenarios
 - Tests across all layers
 - Example: `EndToEndIntegrationTest.java`

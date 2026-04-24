@@ -103,5 +103,5 @@ Selenium WebDriver is not included in the framework.
 ## References
 
 - [Playwright Java documentation](https://playwright.dev/java/)
-- `core-framework/src/main/java/com/automation/core/playwright/PlaywrightManager.java`
-- `core-framework/src/main/java/com/automation/core/playwright/BasePage.java`
+- `core-framework/src/main/java/com/smbc/raft/core/playwright/PlaywrightManager.java`
+- `core-framework/src/main/java/com/smbc/raft/core/playwright/BasePage.java`

@@ -123,7 +123,7 @@ tag expression is injected via `-Dcucumber.filter.tags`.
 ## References
 
 - [Cucumber-JVM documentation](https://cucumber.io/docs/installation/java/)
-- `application-tests/src/test/java/com/automation/tests/bdd/runner/TaggedCucumberRunner.java`
-- `application-tests/src/test/java/com/automation/tests/bdd/steps/SiteNavigationSteps.java`
-- `application-tests/src/test/java/com/automation/tests/bdd/steps/CsvFilterSteps.java`
+- `application-tests/src/test/java/com/smbc/raft/tests/bdd/runner/TaggedCucumberRunner.java`
+- `application-tests/src/test/java/com/smbc/raft/tests/bdd/steps/SiteNavigationSteps.java`
+- `application-tests/src/test/java/com/smbc/raft/tests/bdd/steps/CsvFilterSteps.java`
 - `application-tests/src/test/resources/features/site_navigation.feature`

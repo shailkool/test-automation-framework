@@ -94,5 +94,5 @@ Use **TestNG 7.9.0** as the test runner. JUnit 5 is not included in the framewor
 - [TestNG documentation](https://testng.org/)
 - `application-tests/src/test/resources/testng.xml`
 - `application-tests/src/test/resources/smoke.xml`
-- `core-framework/src/main/java/com/automation/core/data/TestDataProvider.java`
-- `application-tests/src/test/java/com/automation/tests/bdd/runner/TaggedCucumberRunner.java`
+- `core-framework/src/main/java/com/smbc/raft/core/data/TestDataProvider.java`
+- `application-tests/src/test/java/com/smbc/raft/tests/bdd/runner/TaggedCucumberRunner.java`

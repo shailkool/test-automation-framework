@@ -193,7 +193,7 @@ for (FileDiffResult f : result.getFileResults()) {
 should be:` step: when a datatable mismatch occurs it renders an HTML
 diff, attaches it to the Scenario so the masterthought report embeds
 it inline, and fails with a pointer to the file. See
-`application-tests/src/test/java/com/automation/tests/bdd/steps/CsvFilterSteps.java`.
+`application-tests/src/test/java/com/smbc/raft/tests/bdd/steps/CsvFilterSteps.java`.
 
 ---
 

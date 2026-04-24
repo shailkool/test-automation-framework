@@ -25,9 +25,9 @@
     <properties>
         <env>dev</env>
         <profile>local</profile>
-        <cucumber.filter.tags>@smoke</cucumber.filter.tags>
         <maven.install.skip>true</maven.install.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
+        <test.suite>src/test/resources/testng.xml</test.suite>
     </properties>
 
     <dependencies>
@@ -144,6 +144,30 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>auto-cucumber</id>
+            <activation>
+                <property>
+                    <name>cucumber.filter.tags</name>
+                </property>
+            </activation>
+            <properties>
+                <test.suite>src/test/resources/cucumber.xml</test.suite>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <cucumber.filter.tags>${cucumber.filter.tags}</cucumber.filter.tags>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
     <build>
@@ -154,7 +178,7 @@
                 <version>3.2.5</version>
                 <configuration>
                     <suiteXmlFiles>
-                        <suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
+                        <suiteXmlFile>${test.suite}</suiteXmlFile>
                     </suiteXmlFiles>
                     <!-- Let TestNG control threading; Surefire uses 1 fork -->
                     <forkCount>1</forkCount>
@@ -163,7 +187,6 @@
                     <systemPropertyVariables>
                         <env>${env}</env>
                         <profile>${profile}</profile>
-                        <cucumber.filter.tags>${cucumber.filter.tags}</cucumber.filter.tags>
                         <threadCount>${threadCount}</threadCount>
                     </systemPropertyVariables>
                 </configuration>

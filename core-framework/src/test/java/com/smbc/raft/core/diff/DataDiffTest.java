@@ -1,10 +1,6 @@
-package com.smbc.raft.tests.diff;
+package com.smbc.raft.core.diff;
 
 import com.smbc.raft.core.data.CSVHandler;
-import com.smbc.raft.core.diff.DataDiff;
-import com.smbc.raft.core.diff.DiffHtmlReportGenerator;
-import com.smbc.raft.core.diff.DiffResult;
-import com.smbc.raft.core.diff.DiffSummary;
 import com.smbc.raft.core.reporting.ExtentReportManager;
 import com.smbc.raft.core.utils.BaseTest;
 import org.testng.Assert;

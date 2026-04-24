@@ -122,8 +122,8 @@ Or, when a run profile sets `environmentConfigDir`, at an external filesystem pa
 
 ## References
 
-- `core-framework/src/main/java/com/automation/core/environment/EnvironmentConfig.java`
-- `core-framework/src/main/java/com/automation/core/environment/EnvironmentContext.java`
-- `core-framework/src/main/java/com/automation/core/environment/EnvironmentConfigLoader.java`
+- `core-framework/src/main/java/com/smbc/raft/core/environment/EnvironmentConfig.java`
+- `core-framework/src/main/java/com/smbc/raft/core/environment/EnvironmentContext.java`
+- `core-framework/src/main/java/com/smbc/raft/core/environment/EnvironmentConfigLoader.java`
 - `application-tests/src/test/resources/environments/qa.json`
 - `application-tests/src/test/resources/profiles/external-config.json`

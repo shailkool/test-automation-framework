@@ -2,6 +2,7 @@ package com.smbc.raft.tests.bdd.runner;
 
 import io.cucumber.testng.AbstractTestNGCucumberTests;
 import io.cucumber.testng.CucumberOptions;
+import com.smbc.raft.core.bdd.runner.MasterthoughtReportGenerator;
 
 /**
  * Tag-driven Cucumber/TestNG runner with a masterthought HTML report.
@@ -28,7 +29,7 @@ import io.cucumber.testng.CucumberOptions;
  */
 @CucumberOptions(
     features = "src/test/resources/features",
-    glue = {"com.smbc.raft.tests.bdd.steps"},
+    glue = {"com.smbc.raft.tests.bdd.steps", "com.smbc.raft.core.bdd.steps"},
     tags = "@smoke",
     plugin = {
         "pretty",

@@ -1,4 +1,4 @@
-package com.smbc.raft.tests.bdd.steps;
+package com.smbc.raft.core.bdd.steps;
 
 import com.smbc.raft.core.data.CentralTestContext;
 import com.smbc.raft.core.data.DataTableJoinEngine;
@@ -69,6 +69,9 @@ public class DataTableSteps {
                     break;
                 case "RIGHT":
                     rightFilters.add(new FilterRule(col, op, val));
+                    break;
+                default:
+                    log.warn("Ignoring unknown rule type: {}", rowType);
                     break;
             }
         }
