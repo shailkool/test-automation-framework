@@ -4,6 +4,7 @@
 
     <listeners>
         <listener class-name="io.qameta.allure.testng.AllureTestNg"/>
+        <listener class-name="com.automation.core.retry.FlakeRetryListener"/>
     </listeners>
 
     <!-- Framework health — fast, no external deps -->

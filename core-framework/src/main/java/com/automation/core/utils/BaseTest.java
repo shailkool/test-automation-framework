@@ -15,14 +15,9 @@ import org.testng.annotations.*;
 public class BaseTest {
     
     @BeforeSuite
-    public void beforeSuite(org.testng.ITestContext context) {
+    public void beforeSuite() {
         log.info("Test Suite Started");
         ExtentReportManager.initReports();
-
-        // Register the flake retry analyser for every test in the suite
-        // so transient infrastructure failures retry once without any per-test annotation
-        context.getSuite().getAllInvokedMethods().forEach(method ->
-            method.getTestMethod().setRetryAnalyzerClass(com.automation.core.retry.FlakeRetryAnalyzer.class));
     }
     
     @BeforeClass
