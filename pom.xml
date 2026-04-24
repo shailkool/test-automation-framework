@@ -55,8 +55,8 @@
 
         <!-- Code quality -->
         <checkstyle.version>3.6.0</checkstyle.version>
-        <spotbugs.version>4.8.6</spotbugs.version>
-        <spotbugs-plugin.version>4.8.6.6</spotbugs-plugin.version>
+        <spotbugs.version>4.9.2.0</spotbugs.version>
+        <spotbugs-plugin.version>4.9.2.0</spotbugs-plugin.version>
         <enforcer.version>3.6.2</enforcer.version>
         <checkstyle.config.version>10.21.1</checkstyle.config.version>
         <commons-text.version>1.15.0</commons-text.version>

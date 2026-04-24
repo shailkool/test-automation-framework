@@ -40,4 +40,9 @@
         <Bug pattern="DC_DOUBLECHECK"/>
     </Match>
 
+    <!-- Intentional use of RuntimeException to fail tests on infrastructure/data errors -->
+    <Match>
+        <Bug pattern="THROWS_METHOD_THROWS_RUNTIMEEXCEPTION"/>
+    </Match>
+
 </FindBugsFilter>
