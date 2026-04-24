@@ -62,4 +62,14 @@ public class LoopConfig {
     public static LoopConfig custom(int iterations, long intervalMillis) {
         return new LoopConfig(iterations, intervalMillis);
     }
+
+    /**
+     * Exponential backoff config. Each interval doubles from initialIntervalMillis
+     * up to maxIntervalMillis.
+     */
+    public static LoopConfig exponentialBackoff(int iterations,
+                                                 long initialIntervalMillis,
+                                                 long maxIntervalMillis) {
+        return new ExponentialBackoffLoopConfig(iterations, initialIntervalMillis, maxIntervalMillis);
+    }
 }

@@ -127,12 +127,14 @@ public class ValidationLoop {
     }
 
     private void sleepInterval() {
-        long interval = config.getIntervalMillis();
-        if (interval <= 0) {
-            return;
-        }
         try {
-            Thread.sleep(interval);
+            long ms = (config instanceof ExponentialBackoffLoopConfig)
+                ? ((ExponentialBackoffLoopConfig) config).nextIntervalMillis()
+                : config.getIntervalMillis();
+
+            if (ms > 0) {
+                Thread.sleep(ms);
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
