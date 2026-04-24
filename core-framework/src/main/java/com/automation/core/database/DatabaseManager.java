@@ -2,236 +2,265 @@ package com.automation.core.database;
 
 import com.automation.core.config.ConfigurationManager;
 import com.automation.core.exceptions.DatabaseException;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.dbcp2.BasicDataSource;
 
 import java.sql.*;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
- * Manages database connections and operations
+ * Manages database connections and operations via HikariCP connection pool.
+ * Replaces DBCP2 — public API is identical; only the pool implementation changes.
  */
 @Log4j2
 public class DatabaseManager {
-    
+
     private static final Map<String, DatabaseManager> instances = new HashMap<>();
-    private BasicDataSource dataSource;
+    private HikariDataSource dataSource;
     private final String connectionName;
-    
-    private DatabaseManager(String connectionName, String dbType, String url, String username, String password) {
+
+    private DatabaseManager(String connectionName, String dbType,
+                            String url, String username, String password) {
         this.connectionName = connectionName;
         initializeDataSource(dbType, url, username, password);
     }
-    
+
     /**
      * Get database manager instance for default connection
      */
     public static DatabaseManager getInstance() {
         return getInstance("default");
     }
-    
+
     /**
      * Get database manager instance for named connection
      */
     public static synchronized DatabaseManager getInstance(String connectionName) {
         if (!instances.containsKey(connectionName)) {
             ConfigurationManager config = ConfigurationManager.getInstance();
-            
             String prefix = connectionName.equals("default") ? "db" : "db." + connectionName;
-            String dbType = config.getProperty(prefix + ".type");
-            String url = config.getProperty(prefix + ".url");
-            String username = config.getProperty(prefix + ".username");
-            String password = config.getProperty(prefix + ".password");
-            
+
+            String dbType    = config.getProperty(prefix + ".type");
+            String url       = config.getProperty(prefix + ".url");
+            String username  = config.getProperty(prefix + ".username");
+            String password  = config.getProperty(prefix + ".password");
+
             if (dbType == null || url == null) {
-                throw new DatabaseException("Database configuration not found for: " + connectionName);
+                throw new DatabaseException(
+                    "Database configuration not found for: " + connectionName);
             }
-            
-            instances.put(connectionName, new DatabaseManager(connectionName, dbType, url, username, password));
+
+            instances.put(connectionName,
+                new DatabaseManager(connectionName, dbType, url, username, password));
         }
         return instances.get(connectionName);
     }
-    
-    private void initializeDataSource(String dbType, String url, String username, String password) {
+
+    /**
+     * Initialize HikariCP data source
+     */
+    private void initializeDataSource(String dbType, String url,
+                                      String username, String password) {
         try {
             DatabaseType type = DatabaseType.fromString(dbType);
-            
-            dataSource = new BasicDataSource();
-            dataSource.setDriverClassName(type.getDriverClassName());
-            dataSource.setUrl(url);
-            dataSource.setUsername(username);
-            dataSource.setPassword(password);
-            
-            // Connection pool settings
-            dataSource.setInitialSize(2);
-            dataSource.setMaxTotal(10);
-            dataSource.setMaxIdle(5);
-            dataSource.setMinIdle(2);
-            dataSource.setMaxWait(Duration.ofMillis(10000));
-            
-            // Test connection
-            try (Connection conn = dataSource.getConnection()) {
-                log.info("Database connection initialized for {}: {}", connectionName, dbType);
+            ConfigurationManager config = ConfigurationManager.getInstance();
+
+            HikariConfig cfg = new HikariConfig();
+            cfg.setPoolName("HikariPool-" + connectionName);
+            cfg.setDriverClassName(type.getDriverClassName());
+            cfg.setJdbcUrl(url);
+            cfg.setUsername(username);
+            cfg.setPassword(password);
+
+            // Pool sizing - can be overridden via properties
+            cfg.setMaximumPoolSize(Integer.parseInt(config.getProperty("db.pool.maximumPoolSize", "10")));
+            cfg.setMinimumIdle(Integer.parseInt(config.getProperty("db.pool.minimumIdle", "2")));
+            cfg.setIdleTimeout(Long.parseLong(config.getProperty("db.pool.idleTimeout", "600000"))); // 10 mins
+
+            // Timeouts
+            cfg.setConnectionTimeout(Long.parseLong(config.getProperty("db.pool.connectionTimeout", "10000"))); // 10s
+            cfg.setValidationTimeout(TimeUnit.SECONDS.toMillis(5));
+            cfg.setMaxLifetime(Long.parseLong(config.getProperty("db.pool.maxLifetime", "1800000"))); // 30 mins
+
+            // Database-specific tuning
+            applyDatabaseTuning(cfg, type);
+
+            // Warm up: create the pool and verify at least one connection works
+            dataSource = new HikariDataSource(cfg);
+            try (Connection probe = dataSource.getConnection()) {
+                log.info("Database pool initialised [{}]: type={}, poolSize={}",
+                    connectionName, dbType, cfg.getMaximumPoolSize());
             }
-            
+
         } catch (Exception e) {
-            throw new DatabaseException("Failed to initialize database connection: " + connectionName, e);
+            throw new DatabaseException(
+                "Failed to initialise database connection: " + connectionName, e);
         }
     }
-    
+
+    /**
+     * Database-specific optimisations applied at pool creation time.
+     * HikariCP passes these directly to the JDBC driver, avoiding per-connection overhead.
+     */
+    private void applyDatabaseTuning(HikariConfig cfg, DatabaseType type) {
+        switch (type) {
+            case ORACLE:
+                cfg.addDataSourceProperty("oracle.jdbc.implicitStatementCacheSize", "20");
+                cfg.addDataSourceProperty("oracle.net.CONNECT_TIMEOUT", "5000");
+                break;
+            case MSSQL:
+                cfg.addDataSourceProperty("loginTimeout", "5");
+                cfg.addDataSourceProperty("socketTimeout", "30000");
+                break;
+            case MYSQL:
+                cfg.addDataSourceProperty("cachePrepStmts", "true");
+                cfg.addDataSourceProperty("prepStmtCacheSize", "250");
+                cfg.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+                cfg.addDataSourceProperty("useServerPrepStmts", "true");
+                break;
+            case POSTGRESQL:
+                cfg.addDataSourceProperty("preparedStatementCacheQueries", "256");
+                cfg.addDataSourceProperty("tcpKeepAlive", "true");
+                break;
+        }
+    }
+
     /**
      * Execute SELECT query and return results as list of maps
      */
     public List<Map<String, Object>> executeQuery(String query, Object... params) {
         log.debug("Executing query: {}", query);
         List<Map<String, Object>> results = new ArrayList<>();
-        
+
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
-            
+
             setParameters(stmt, params);
-            
+
             try (ResultSet rs = stmt.executeQuery()) {
-                ResultSetMetaData metaData = rs.getMetaData();
-                int columnCount = metaData.getColumnCount();
-                
+                ResultSetMetaData meta = rs.getMetaData();
+                int cols = meta.getColumnCount();
                 while (rs.next()) {
                     Map<String, Object> row = new HashMap<>();
-                    for (int i = 1; i <= columnCount; i++) {
-                        row.put(metaData.getColumnName(i), rs.getObject(i));
+                    for (int i = 1; i <= cols; i++) {
+                        row.put(meta.getColumnName(i), rs.getObject(i));
                     }
                     results.add(row);
                 }
             }
-            
+
             log.debug("Query returned {} rows", results.size());
-            
+
         } catch (SQLException e) {
             throw new DatabaseException("Error executing query: " + query, e);
         }
-        
         return results;
     }
-    
+
     /**
      * Execute INSERT, UPDATE, DELETE query
      */
     public int executeUpdate(String query, Object... params) {
         log.debug("Executing update: {}", query);
-        
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
-            
+
             setParameters(stmt, params);
-            int rowsAffected = stmt.executeUpdate();
-            
-            log.debug("Update affected {} rows", rowsAffected);
-            return rowsAffected;
-            
+            int rows = stmt.executeUpdate();
+            log.debug("Update affected {} rows", rows);
+            return rows;
+
         } catch (SQLException e) {
             throw new DatabaseException("Error executing update: " + query, e);
         }
     }
-    
+
     /**
      * Execute query and return single value
      */
     public Object executeScalar(String query, Object... params) {
         List<Map<String, Object>> results = executeQuery(query, params);
-        if (results.isEmpty()) {
-            return null;
-        }
-        Map<String, Object> firstRow = results.get(0);
-        return firstRow.values().iterator().next();
+        if (results.isEmpty()) return null;
+        return results.get(0).values().iterator().next();
     }
-    
+
     /**
      * Execute stored procedure
      */
     public void executeProcedure(String procedureName, Object... params) {
         log.debug("Executing procedure: {}", procedureName);
-        
-        StringBuilder callString = new StringBuilder("{call ").append(procedureName).append("(");
+        StringBuilder call = new StringBuilder("{call ").append(procedureName).append("(");
         for (int i = 0; i < params.length; i++) {
-            callString.append("?");
-            if (i < params.length - 1) {
-                callString.append(",");
-            }
+            call.append("?");
+            if (i < params.length - 1) call.append(",");
         }
-        callString.append(")}");
-        
+        call.append(")}");
+
         try (Connection conn = dataSource.getConnection();
-             CallableStatement stmt = conn.prepareCall(callString.toString())) {
-            
+             CallableStatement stmt = conn.prepareCall(call.toString())) {
+
             setParameters(stmt, params);
             stmt.execute();
-            
-            log.debug("Procedure executed successfully");
-            
+            log.debug("Procedure executed: {}", procedureName);
+
         } catch (SQLException e) {
             throw new DatabaseException("Error executing procedure: " + procedureName, e);
         }
     }
-    
+
     /**
      * Check if record exists
      */
     public boolean recordExists(String query, Object... params) {
-        List<Map<String, Object>> results = executeQuery(query, params);
-        return !results.isEmpty();
+        return !executeQuery(query, params).isEmpty();
     }
-    
+
     /**
      * Get record count
      */
     public int getRecordCount(String tableName, String whereClause) {
-        String query = "SELECT COUNT(*) FROM " + tableName;
-        if (whereClause != null && !whereClause.isEmpty()) {
-            query += " WHERE " + whereClause;
-        }
+        String query = "SELECT COUNT(*) FROM " + tableName
+            + (whereClause != null && !whereClause.isEmpty() ? " WHERE " + whereClause : "");
         Object count = executeScalar(query);
         return count != null ? ((Number) count).intValue() : 0;
     }
-    
+
     private void setParameters(PreparedStatement stmt, Object... params) throws SQLException {
-        for (int i = 0; i < params.length; i++) {
-            stmt.setObject(i + 1, params[i]);
-        }
+        for (int i = 0; i < params.length; i++) stmt.setObject(i + 1, params[i]);
     }
-    
+
     /**
      * Close all database connections
      */
     public static void closeAll() {
-        for (DatabaseManager manager : instances.values()) {
+        instances.values().forEach(m -> {
             try {
-                if (manager.dataSource != null) {
-                    manager.dataSource.close();
-                    log.info("Database connection closed: {}", manager.connectionName);
+                if (m.dataSource != null && !m.dataSource.isClosed()) {
+                    m.dataSource.close();
+                    log.info("Database pool closed: {}", m.connectionName);
                 }
-            } catch (SQLException e) {
-                log.error("Error closing database connection: {}", manager.connectionName, e);
+            } catch (Exception e) {
+                log.error("Error closing pool: {}", m.connectionName, e);
             }
-        }
+        });
         instances.clear();
     }
-    
+
     /**
      * Close specific connection
      */
     public void close() {
-        try {
-            if (dataSource != null) {
-                dataSource.close();
-                instances.remove(connectionName);
-                log.info("Database connection closed: {}", connectionName);
-            }
-        } catch (SQLException e) {
-            log.error("Error closing database connection: {}", connectionName, e);
+        if (dataSource != null && !dataSource.isClosed()) {
+            dataSource.close();
+            instances.remove(connectionName);
+            log.info("Database pool closed: {}", connectionName);
         }
+    }
+    
+    @Override
+    public String toString() {
+        return dataSource != null ? dataSource.toString() : "DatabaseManager (pool not initialized)";
     }
 }

@@ -17,7 +17,7 @@ public class TestDataProvider {
      * Data provider for Excel files
      * Usage: @Test(dataProvider = "excelDataProvider", dataProviderClass = TestDataProvider.class)
      */
-    @DataProvider(name = "excelDataProvider")
+    @DataProvider(name = "excelDataProvider", parallel = true)
     public static Object[][] excelDataProvider(Method method) {
         String testName = method.getName();
         String filePath = getDataFilePath(testName, "xlsx");
@@ -34,7 +34,7 @@ public class TestDataProvider {
      * Data provider for CSV files
      * Usage: @Test(dataProvider = "csvDataProvider", dataProviderClass = TestDataProvider.class)
      */
-    @DataProvider(name = "csvDataProvider")
+    @DataProvider(name = "csvDataProvider", parallel = true)
     public static Object[][] csvDataProvider(Method method) {
         String testName = method.getName();
         String filePath = getDataFilePath(testName, "csv");

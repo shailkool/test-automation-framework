@@ -81,14 +81,20 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
                 <configuration>
                     <suiteXmlFiles>
                         <suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
                     </suiteXmlFiles>
+                    <!-- Let TestNG control threading; Surefire uses 1 fork -->
+                    <forkCount>1</forkCount>
+                    <reuseForks>true</reuseForks>
+                    <argLine>-Xmx2048m -XX:+UseG1GC</argLine>
                     <systemPropertyVariables>
                         <env>${env}</env>
                         <profile>${profile}</profile>
                         <cucumber.filter.tags>${cucumber.filter.tags}</cucumber.filter.tags>
+                        <threadCount>${threadCount}</threadCount>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

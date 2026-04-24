@@ -3,6 +3,7 @@ package com.automation.tests.database;
 import com.automation.app.database.UserDatabaseHelper;
 import com.automation.core.reporting.ExtentReportManager;
 import com.automation.core.utils.BaseTest;
+import lombok.extern.log4j.Log4j2;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -14,6 +15,7 @@ import java.util.Map;
 /**
  * Database test examples for User table
  */
+@Log4j2
 public class UserDatabaseTest extends BaseTest {
     
     private UserDatabaseHelper userDb;
@@ -25,6 +27,15 @@ public class UserDatabaseTest extends BaseTest {
         
         // Clean up any existing test data
         userDb.cleanupTestUsers(TEST_EMAIL_PREFIX + "%");
+    }
+    
+    @BeforeClass(dependsOnMethods = "setupClass")
+    public void verifyPool() {
+        // HikariDataSource will be in the toString — confirms DBCP2 is gone
+        log.info("Database Pool Identity: {}", com.automation.core.database.DatabaseManager.getInstance().toString());
+        Assert.assertTrue(
+            com.automation.core.database.DatabaseManager.getInstance().toString().contains("HikariDataSource"),
+            "Database pool should be HikariDataSource");
     }
     
     @Test(description = "Verify user can be created in database")

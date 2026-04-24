@@ -26,7 +26,7 @@ public class ExtentReportManager {
     /**
      * Initialize extent reports
      */
-    public static void initReports() {
+    public static synchronized void initReports() {
         if (extent == null) {
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
             reportPath = "test-output/extent-reports/TestReport_" + timestamp + ".html";
@@ -174,7 +174,7 @@ public class ExtentReportManager {
     /**
      * Flush reports
      */
-    public static void flushReports() {
+    public static synchronized void flushReports() {
         if (extent != null) {
             extent.flush();
             log.info("Extent Reports flushed: {}", reportPath);

@@ -43,10 +43,15 @@ The foundational layer that provides reusable components and utilities.
 - Test categorization and metadata
 - Thread-safe report management
 
+**Test Data Registry** (`com.framework.data`)
+- `TestDataRegistry.java` - Thread-safe tracking of test data for automatic cleanup
+- Uses LIFO stack for teardown actions
+- Integrated into `BaseTest` lifecycle
+
 **Base Classes** (`com.framework.base`)
 - `BaseTest.java` - Base test class with TestNG hooks
 - Automatic setup and teardown
-- Resource cleanup
+- Automatic test data cleanup via `TestDataRegistry`
 - Failure screenshot capture
 
 **Utilities** (`com.framework.utils`)
@@ -80,6 +85,11 @@ Application-specific implementations that extend the core framework.
 - `UserWorkflow.java` - Business process workflows
 - Combines UI, API, and Database operations
 - Reusable business logic for tests
+
+**Data Fixtures** (`com.app.fixtures`)
+- `UserFixture.java` - Domain-specific data builders
+- `TestDataFactory.java` - Central entry point for creating test data
+- Automatic registration for cleanup via Core Framework
 
 ### Layer 3: Tests (`app-tests`)
 Actual test implementations organized by type.
@@ -129,6 +139,11 @@ Actual test implementations organized by type.
 ### 5. Builder Pattern
 - Request specification building
 - Test data construction
+
+### 6. Test Data Factory Pattern
+- Centralized creation of domain objects (Users, Orders, etc.)
+- Thread-safe automatic cleanup registration
+- Decouples test data setup from test logic
 
 ## Database Support
 

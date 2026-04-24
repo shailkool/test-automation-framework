@@ -56,6 +56,9 @@ public class BaseTest {
             ExtentReportManager.logSkip("Test was skipped");
         }
         
+        // Clean up all test data created during this test
+        com.automation.core.data.TestDataRegistry.cleanup();
+
         // Close browser after each test
         PlaywrightManager.closeBrowser();
     }
