@@ -27,7 +27,7 @@ public class KafkaMessagingTest extends BaseTest {
         kafka = MessagingManager.kafka();
     }
 
-    @Test(groups = "kafka", description = "Produce a single Kafka record and assert metadata")
+    @Test(groups = {"kafka", "nightly"}, description = "Produce a single Kafka record and assert metadata")
     public void testProduceKafkaRecord() {
         ExtentReportManager.assignCategory("Messaging", "Kafka", "Smoke");
 
@@ -45,7 +45,7 @@ public class KafkaMessagingTest extends BaseTest {
         ExtentReportManager.logPass("Produced Kafka record offset=" + message.getOffset());
     }
 
-    @Test(groups = "kafka", description = "Produce then consume matches on the same topic",
+    @Test(groups = {"kafka", "nightly"}, description = "Produce then consume matches on the same topic",
             dependsOnMethods = "testProduceKafkaRecord")
     public void testConsumeKafkaRecord() {
         ExtentReportManager.assignCategory("Messaging", "Kafka", "Functional");
@@ -67,7 +67,7 @@ public class KafkaMessagingTest extends BaseTest {
         ExtentReportManager.logPass("Consumed record at offset " + received.getOffset());
     }
 
-    @Test(groups = "kafka", description = "Drain multiple records up to a bound")
+    @Test(groups = {"kafka", "nightly"}, description = "Drain multiple records up to a bound")
     public void testBatchPoll() {
         ExtentReportManager.assignCategory("Messaging", "Kafka", "Functional");
 

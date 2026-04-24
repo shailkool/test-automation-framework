@@ -30,7 +30,7 @@ public class UserApiTest extends BaseTest {
         }
     }
     
-    @Test(description = "Verify getting all users returns 200 OK")
+    @Test(groups = {"smoke", "regression"}, description = "Verify getting all users returns 200 OK")
     public void testGetAllUsers() {
         ExtentReportManager.assignCategory("API", "User", "Smoke");
         ExtentReportManager.assignAuthor("Test Automation Team");
@@ -51,7 +51,7 @@ public class UserApiTest extends BaseTest {
         ExtentReportManager.logPass("Get all users API test passed");
     }
     
-    @Test(description = "Verify creating a new user")
+    @Test(groups = {"regression"}, description = "Verify creating a new user")
     public void testCreateUser() {
         ExtentReportManager.assignCategory("API", "User", "Functional");
         
@@ -81,7 +81,7 @@ public class UserApiTest extends BaseTest {
         userApi.deleteUser(userId);
     }
     
-    @Test(description = "Verify getting user by ID")
+    @Test(groups = {"regression"}, description = "Verify getting user by ID")
     public void testGetUserById() {
         ExtentReportManager.assignCategory("API", "User", "Functional");
         
@@ -106,7 +106,7 @@ public class UserApiTest extends BaseTest {
         userApi.deleteUser(userId);
     }
     
-    @Test(description = "Verify updating user information")
+    @Test(groups = {"regression"}, description = "Verify updating user information")
     public void testUpdateUser() {
         ExtentReportManager.assignCategory("API", "User", "Functional");
         
@@ -138,7 +138,7 @@ public class UserApiTest extends BaseTest {
         userApi.deleteUser(userId);
     }
     
-    @Test(description = "Verify deleting a user")
+    @Test(groups = {"regression"}, description = "Verify deleting a user")
     public void testDeleteUser() {
         ExtentReportManager.assignCategory("API", "User", "Functional");
         

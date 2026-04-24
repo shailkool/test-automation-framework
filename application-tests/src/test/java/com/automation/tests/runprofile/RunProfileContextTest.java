@@ -42,14 +42,14 @@ public class RunProfileContextTest {
         EnvironmentContext.reset();
     }
 
-    @Test
+    @Test(groups = {"smoke", "regression"})
     public void defaultsToLocalWhenNoSystemPropertyIsSet() {
         RunProfileContext ctx = RunProfileContext.getInstance();
         assertEquals(ctx.getProfileName(), "local");
         assertNotNull(ctx.getProfile());
     }
 
-    @Test
+    @Test(groups = {"smoke", "regression"})
     public void localProfileResolvesChromeChannel() {
         RunProfileContext ctx = RunProfileContext.reload("local");
         RunProfile profile = ctx.getProfile();
@@ -58,7 +58,7 @@ public class RunProfileContextTest {
         assertFalse(profile.isHeadless(), "local profile should be headed");
     }
 
-    @Test
+    @Test(groups = {"smoke", "regression"})
     public void ciProfileSelectsHeadlessChromiumWithoutChannel() {
         RunProfileContext ctx = RunProfileContext.reload("ci");
         RunProfile profile = ctx.getProfile();
@@ -69,7 +69,7 @@ public class RunProfileContextTest {
         assertEquals(profile.timeoutOrDefault(0), 45_000);
     }
 
-    @Test
+    @Test(groups = {"smoke", "regression"})
     public void externalConfigProfileExposesEdgeChannelAndExternalDir() {
         RunProfileContext ctx = RunProfileContext.reload("external-config");
         RunProfile profile = ctx.getProfile();
@@ -80,25 +80,25 @@ public class RunProfileContextTest {
             "/opt/secure-configs/environments");
     }
 
-    @Test
+    @Test(groups = {"smoke", "regression"})
     public void localProfileDefaultsScreenshotModeToEachStep() {
         RunProfileContext ctx = RunProfileContext.reload("local");
         assertEquals(ctx.getProfile().resolveScreenshotMode(), ScreenshotMode.EACH_STEP);
     }
 
-    @Test
+    @Test(groups = {"smoke", "regression"})
     public void ciProfileDefaultsScreenshotModeToOnFailure() {
         RunProfileContext ctx = RunProfileContext.reload("ci");
         assertEquals(ctx.getProfile().resolveScreenshotMode(), ScreenshotMode.ON_FAILURE);
     }
 
-    @Test
+    @Test(groups = {"smoke", "regression"})
     public void missingScreenshotModeFallsBackToOnFailure() {
         RunProfile bare = new RunProfile();
         assertEquals(bare.resolveScreenshotMode(), ScreenshotMode.ON_FAILURE);
     }
 
-    @Test
+    @Test(groups = {"smoke", "regression"})
     public void screenshotModeParsingIsCaseAndHyphenTolerant() {
         assertEquals(ScreenshotMode.parse("each-step"), ScreenshotMode.EACH_STEP);
         assertEquals(ScreenshotMode.parse(" Always "), ScreenshotMode.EACH_STEP);
@@ -106,7 +106,7 @@ public class RunProfileContextTest {
         assertEquals(ScreenshotMode.parse("nope"), ScreenshotMode.ON_FAILURE);
     }
 
-    @Test
+    @Test(groups = {"smoke", "regression"})
     public void outputDirsFallBackToSensibleDefaultsWhenMissing() {
         RunProfile barebones = new RunProfile();
         barebones.setName("bare");

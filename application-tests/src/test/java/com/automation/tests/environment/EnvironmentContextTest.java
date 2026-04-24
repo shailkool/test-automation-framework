@@ -31,7 +31,7 @@ public class EnvironmentContextTest {
         EnvironmentContext.reset();
     }
 
-    @Test
+    @Test(groups = {"smoke", "regression"})
     public void defaultsToDevWhenNoSystemPropertyIsSet() {
         System.clearProperty("env");
         EnvironmentConfig config = EnvironmentContext.get();
@@ -39,7 +39,7 @@ public class EnvironmentContextTest {
         assertNotNull(config);
     }
 
-    @Test
+    @Test(groups = {"smoke", "regression"})
     public void loadsQaFromSystemProperty() {
         System.setProperty("env", "qa");
         EnvironmentConfig config = EnvironmentContext.get();
@@ -51,7 +51,7 @@ public class EnvironmentContextTest {
         assertTrue(archive.getUrl().contains("qa-oracle.internal"));
     }
 
-    @Test
+    @Test(groups = {"smoke", "regression"})
     public void qaExposesMultipleMessageQueuesOfDifferentProviders() {
         System.setProperty("env", "qa");
         EnvironmentConfig config = EnvironmentContext.get();
@@ -62,7 +62,7 @@ public class EnvironmentContextTest {
         assertEquals(mq.getProperties().get("queueManager"), "QA.QM1");
     }
 
-    @Test
+    @Test(groups = {"smoke", "regression"})
     public void bbcSiteCarriesItsOwnUserBase() {
         System.setProperty("env", "qa");
         EnvironmentConfig config = EnvironmentContext.get();
@@ -81,7 +81,7 @@ public class EnvironmentContextTest {
         assertTrue(bbcReader.getUsername().startsWith("qa."));
     }
 
-    @Test
+    @Test(groups = {"smoke", "regression"})
     public void uat2ExposesItsOwnDistinctDatabaseConnections() {
         System.setProperty("env", "uat2");
         EnvironmentConfig config = EnvironmentContext.get();
@@ -90,7 +90,7 @@ public class EnvironmentContextTest {
         assertTrue(config.getDatabases().get("contentDb").getUrl().contains("uat2-db.internal"));
     }
 
-    @Test
+    @Test(groups = {"smoke", "regression"})
     public void singletonCachesOnFirstAccess() {
         System.setProperty("env", "dev");
         EnvironmentConfig first = EnvironmentContext.get();

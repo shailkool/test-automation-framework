@@ -38,7 +38,7 @@ public class UserDatabaseTest extends BaseTest {
             "Database pool should be HikariDataSource");
     }
     
-    @Test(description = "Verify user can be created in database")
+    @Test(groups = {"smoke", "regression"}, description = "Verify user can be created in database")
     public void testCreateUser() {
         ExtentReportManager.assignCategory("Database", "User", "CRUD");
         ExtentReportManager.assignAuthor("Test Automation Team");
@@ -62,7 +62,7 @@ public class UserDatabaseTest extends BaseTest {
         ExtentReportManager.logPass("User created successfully in database");
     }
     
-    @Test(description = "Verify user can be retrieved by ID")
+    @Test(groups = {"regression"}, description = "Verify user can be retrieved by ID")
     public void testGetUserById() {
         ExtentReportManager.assignCategory("Database", "User", "Read");
         
@@ -85,7 +85,7 @@ public class UserDatabaseTest extends BaseTest {
         ExtentReportManager.logPass("User retrieved successfully by ID");
     }
     
-    @Test(description = "Verify user can be updated in database")
+    @Test(groups = {"regression"}, description = "Verify user can be updated in database")
     public void testUpdateUser() {
         ExtentReportManager.assignCategory("Database", "User", "CRUD");
         
@@ -113,7 +113,7 @@ public class UserDatabaseTest extends BaseTest {
         ExtentReportManager.logPass("User updated successfully in database");
     }
     
-    @Test(description = "Verify user can be deleted from database")
+    @Test(groups = {"regression"}, description = "Verify user can be deleted from database")
     public void testDeleteUser() {
         ExtentReportManager.assignCategory("Database", "User", "CRUD");
         
@@ -134,7 +134,7 @@ public class UserDatabaseTest extends BaseTest {
         ExtentReportManager.logPass("User deleted successfully from database");
     }
     
-    @Test(description = "Verify getting users by role")
+    @Test(groups = {"regression"}, description = "Verify getting users by role")
     public void testGetUsersByRole() {
         ExtentReportManager.assignCategory("Database", "User", "Query");
         

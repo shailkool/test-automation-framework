@@ -27,7 +27,7 @@ public class JmsMessagingTest extends BaseTest {
         jms.drain(QUEUE);
     }
 
-    @Test(groups = "jms", description = "Send a JMS message to a queue")
+    @Test(groups = {"jms", "nightly"}, description = "Send a JMS message to a queue")
     public void testSendJmsMessage() {
         ExtentReportManager.assignCategory("Messaging", "JMS", "Smoke");
 
@@ -44,7 +44,7 @@ public class JmsMessagingTest extends BaseTest {
         ExtentReportManager.logPass("Sent JMS message id=" + message.getMessageId());
     }
 
-    @Test(groups = "jms", description = "Receive a JMS message matching correlation id",
+    @Test(groups = {"jms", "nightly"}, description = "Receive a JMS message matching correlation id",
             dependsOnMethods = "testSendJmsMessage")
     public void testReceiveJmsMessage() {
         ExtentReportManager.assignCategory("Messaging", "JMS", "Functional");
@@ -61,7 +61,7 @@ public class JmsMessagingTest extends BaseTest {
         ExtentReportManager.logPass("Received JMS message " + received.getMessageId());
     }
 
-    @Test(groups = "jms", description = "IBM MQ via named client (requires QA env)")
+    @Test(groups = {"jms", "nightly"}, description = "IBM MQ via named client (requires QA env)")
     public void testNamedIbmMqClient() {
         ExtentReportManager.assignCategory("Messaging", "JMS", "IBM_MQ");
 

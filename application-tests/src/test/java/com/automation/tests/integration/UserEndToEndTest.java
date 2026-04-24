@@ -44,7 +44,7 @@ public class UserEndToEndTest extends BaseTest {
         userDb.cleanupTestUsers(TEST_USER_PREFIX + "%");
     }
     
-    @Test(priority = 1, description = "End-to-end test: Create user via API and verify in database")
+    @Test(groups = {"regression"}, priority = 1, description = "End-to-end test: Create user via API and verify in database")
     public void testCreateUserApiToDatabase() {
         ExtentReportManager.assignCategory("Integration", "E2E", "User Creation");
         ExtentReportManager.assignAuthor("Test Automation Team");
@@ -74,7 +74,7 @@ public class UserEndToEndTest extends BaseTest {
         ExtentReportManager.logPass("End-to-end user creation test completed successfully");
     }
     
-    @Test(priority = 2, description = "End-to-end test: Update user via API and verify in database", 
+    @Test(groups = {"regression"}, priority = 2, description = "End-to-end test: Update user via API and verify in database", 
           dependsOnMethods = "testCreateUserApiToDatabase")
     public void testUpdateUserApiToDatabase() {
         ExtentReportManager.assignCategory("Integration", "E2E", "User Update");
@@ -99,7 +99,7 @@ public class UserEndToEndTest extends BaseTest {
         ExtentReportManager.logPass("End-to-end user update test completed successfully");
     }
     
-    @Test(priority = 3, description = "End-to-end test: Verify user can login via UI", 
+    @Test(groups = {"regression"}, priority = 3, description = "End-to-end test: Verify user can login via UI", 
           dependsOnMethods = "testCreateUserApiToDatabase")
     public void testUserLoginViaUI() {
         ExtentReportManager.assignCategory("Integration", "E2E", "User Login");
@@ -135,7 +135,7 @@ public class UserEndToEndTest extends BaseTest {
         ExtentReportManager.logPass("End-to-end login test completed successfully");
     }
     
-    @Test(priority = 4, description = "End-to-end test: Delete user via API and verify in database", 
+    @Test(groups = {"regression"}, priority = 4, description = "End-to-end test: Delete user via API and verify in database", 
           dependsOnMethods = "testUserLoginViaUI")
     public void testDeleteUserApiToDatabase() {
         ExtentReportManager.assignCategory("Integration", "E2E", "User Deletion");
@@ -163,7 +163,7 @@ public class UserEndToEndTest extends BaseTest {
         ExtentReportManager.logPass("End-to-end deletion test completed successfully");
     }
     
-    @Test(description = "Complete workflow: API creation → DB verification → UI interaction → API cleanup")
+    @Test(groups = {"nightly"}, description = "Complete workflow: API creation → DB verification → UI interaction → API cleanup")
     public void testCompleteUserLifecycle() {
         ExtentReportManager.assignCategory("Integration", "E2E", "Complete Workflow");
         

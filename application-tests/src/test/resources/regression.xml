@@ -1,39 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
-<suite name="Regression" parallel="methods" thread-count="12" data-provider-thread-count="6">
-    
+<suite name="Regression Suite" parallel="methods" thread-count="12"
+       data-provider-thread-count="6" verbose="1">
+
     <listeners>
         <listener class-name="io.qameta.allure.testng.AllureTestNg"/>
     </listeners>
-    
-    <test name="UI Tests">
+
+    <test name="Framework Config">
+        <groups>
+            <run><include name="smoke"/><include name="regression"/></run>
+        </groups>
         <classes>
-            <class name="com.automation.tests.ui.LoginTest"/>
-            <class name="com.automation.tests.ui.DataDrivenLoginTest"/>
+            <class name="com.automation.tests.environment.EnvironmentContextTest"/>
         </classes>
     </test>
-    
+
     <test name="API Tests">
+        <groups>
+            <run><include name="smoke"/><include name="regression"/></run>
+        </groups>
         <classes>
             <class name="com.automation.tests.api.UserApiTest"/>
+            <class name="com.automation.tests.api.DataDrivenUserApiTest"/>
         </classes>
     </test>
-    
+
     <test name="Database Tests">
+        <groups>
+            <run><include name="smoke"/><include name="regression"/></run>
+        </groups>
         <classes>
             <class name="com.automation.tests.database.UserDatabaseTest"/>
         </classes>
     </test>
-    
-    <test name="Integration Tests">
+
+    <!-- Integration tests run sequentially — ordered steps, shared state -->
+    <test name="Integration Tests" preserve-order="true">
+        <groups>
+            <run><include name="regression"/></run>
+        </groups>
         <classes>
             <class name="com.automation.tests.integration.UserEndToEndTest"/>
-        </classes>
-    </test>
-
-    <test name="BDD Tests">
-        <classes>
-            <class name="com.automation.tests.bdd.runner.TaggedCucumberRunner"/>
         </classes>
     </test>
 

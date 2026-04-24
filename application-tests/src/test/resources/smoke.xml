@@ -1,14 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
-<suite name="Smoke" parallel="methods" thread-count="4">
-    <test name="Smoke">
+<suite name="Smoke Suite" parallel="methods" thread-count="4" verbose="1">
+
+    <listeners>
+        <listener class-name="io.qameta.allure.testng.AllureTestNg"/>
+    </listeners>
+
+    <!-- Framework health — fast, no external deps -->
+    <test name="Framework Config">
         <groups>
-            <run>
-                <include name="smoke"/>
-            </run>
+            <run><include name="smoke"/></run>
         </groups>
-        <packages>
-            <package name="com.automation.tests"/>
-        </packages>
+        <classes>
+            <class name="com.automation.tests.environment.EnvironmentContextTest"/>
+        </classes>
     </test>
+
+    <!-- API smoke — one call per endpoint family -->
+    <test name="API Smoke">
+        <groups>
+            <run><include name="smoke"/></run>
+        </groups>
+        <classes>
+            <class name="com.automation.tests.api.UserApiTest"/>
+        </classes>
+    </test>
+
+    <!-- DB smoke — one write + read per DB -->
+    <test name="Database Smoke">
+        <groups>
+            <run><include name="smoke"/></run>
+        </groups>
+        <classes>
+            <class name="com.automation.tests.database.UserDatabaseTest"/>
+        </classes>
+    </test>
+
 </suite>
