@@ -14,7 +14,7 @@ test-automation-framework/
 │   └── src/
 │       ├── main/
 │       │   ├── java/
-│       │   │   └── com/framework/
+│       │   │   └── com/smbc/raft/core/
 │       │   │       ├── config/
 │       │   │       │   └── ConfigManager.java          # Configuration management
 │       │   │       ├── database/
@@ -41,7 +41,7 @@ test-automation-framework/
 │   └── src/
 │       └── main/
 │           └── java/
-│               └── com/app/
+│               └── com/smbc/raft/app/
 │                   ├── pages/                          # Page Objects
 │                   │   ├── LoginPage.java
 │                   │   └── HomePage.java
@@ -57,7 +57,7 @@ test-automation-framework/
     └── src/
         ├── test/
         │   ├── java/
-        │   │   └── com/tests/
+        │   │   └── com/smbc/raft/tests/
         │   │       ├── ui/                             # UI Tests
         │   │       │   └── LoginUITest.java
         │   │       ├── api/                            # API Tests

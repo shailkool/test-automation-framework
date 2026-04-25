@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suppressions PUBLIC
+    "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+    "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+
+<suppressions>
+
+    <!-- Test classes don't need Javadoc on every method and can use snake_case names -->
+    <suppress checks="MissingJavadocMethod"
+              files=".*Test\.java$"/>
+    <suppress checks="MethodName"
+              files=".*Test\.java$"/>
+
+    <!-- BDD step definition classes: method names are sentence fragments by design -->
+    <suppress checks="MethodName"
+              files=".*Steps\.java$"/>
+
+    <!-- BDD step methods are often longer due to Given/When/Then structure -->
+    <suppress checks="MethodLength"
+              files=".*Steps\.java$"/>
+
+    <!-- Generated or third-party code in target directory -->
+    <suppress checks=".*"
+              files="[/\\]target[/\\]"/>
+
+    <!-- Inline locator rule only applies to test classes, not Page Objects -->
+    <suppress id="NoInlineLocators"
+              files=".*Page\.java$"/>
+
+    <!-- TestDescriptionRequired only applies to test classes -->
+    <suppress id="TestDescriptionRequired"
+              files="(BasePage|BaseTest|.*Manager|.*Helper|.*Client|.*Handler|.*Provider|.*Generator|.*Cli|.*Result|.*Info|.*Summary|.*Row|.*Diff|.*Loader|.*Context|.*Type)\.java$"/>
+    <suppress id="TestDescriptionRequired"
+              files="application-tests[/\\]src[/\\]test[/\\]java[/\\].*Test\.java$"/>
+
+    <!-- CLI tools are allowed to use System.out/err -->
+    <suppress id="NoSysOut"
+              files=".*Cli\.java$"/>
+
+    <!-- HTML report generators contain large embedded CSS/JS templates -->
+    <suppress checks="FileLength"
+              files=".*ReportGenerator\.java$"/>
+    <suppress checks="MethodLength"
+              files=".*ReportGenerator\.java$"/>
+
+    <!-- Utility classes and data handlers don't need strict Javadoc yet -->
+    <suppress checks="MissingJavadocMethod"
+              files="(.*Handler|.*Provider|.*Manager|.*Helper|DataTableJoinEngine)\.java$"/>
+
+    <!-- RetryValidator and ValidationLoop are the implementation of waiting infrastructure -->
+    <suppress id="NoThreadSleep"
+              files="(RetryValidator|ValidationLoop)\.java$"/>
+    <suppress checks="MethodLength"
+              files="RetryValidator\.java$"/>
+
+</suppressions>

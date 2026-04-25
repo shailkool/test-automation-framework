@@ -364,14 +364,14 @@ mvn clean test allure:serve
 <suite name="Complete Test Suite" parallel="tests" thread-count="3">
     <test name="Smoke Tests">
         <classes>
-            <class name="com.automation.tests.ui.LoginTest"/>
-            <class name="com.automation.tests.api.UserApiTest"/>
+            <class name="com.smbc.raft.tests.ui.LoginTest"/>
+            <class name="com.smbc.raft.tests.api.UserApiTest"/>
         </classes>
     </test>
     
     <test name="Regression Tests">
         <packages>
-            <package name="com.automation.tests.*"/>
+            <package name="com.smbc.raft.tests.*"/>
         </packages>
     </test>
 </suite>

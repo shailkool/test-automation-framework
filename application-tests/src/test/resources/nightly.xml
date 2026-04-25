@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Nightly Suite" parallel="methods" thread-count="16"
+       data-provider-thread-count="8" verbose="1">
+
+    <listeners>
+        <listener class-name="io.qameta.allure.testng.AllureTestNg"/>
+        <listener class-name="com.smbc.raft.core.retry.FlakeRetryListener"/>
+    </listeners>
+
+    <!-- All regression tests -->
+    <test name="Full Regression">
+        <groups>
+            <run>
+                <include name="smoke"/>
+                <include name="regression"/>
+            </run>
+        </groups>
+        <packages>
+            <package name="com.smbc.raft.tests.api"/>
+            <package name="com.smbc.raft.tests.database"/>
+            <package name="com.smbc.raft.tests.ui"/>
+            <package name="com.smbc.raft.tests.environment"/>
+            <package name="com.smbc.raft.tests.retry"/>
+            <package name="com.smbc.raft.tests.validation"/>
+        </packages>
+    </test>
+
+    <!-- Integration and lifecycle — sequential, high-value -->
+    <test name="Integration Tests" preserve-order="true">
+        <groups>
+            <run>
+                <include name="regression"/>
+                <include name="nightly"/>
+            </run>
+        </groups>
+        <classes>
+            <class name="com.smbc.raft.tests.integration.UserEndToEndTest"/>
+        </classes>
+    </test>
+
+    <!-- Messaging — requires live brokers, nightly only -->
+    <test name="Kafka Messaging">
+        <groups>
+            <run><include name="kafka"/><include name="nightly"/></run>
+        </groups>
+        <classes>
+            <class name="com.smbc.raft.tests.messaging.KafkaMessagingTest"/>
+        </classes>
+    </test>
+
+    <test name="JMS Messaging">
+        <groups>
+            <run><include name="jms"/><include name="nightly"/></run>
+        </groups>
+        <classes>
+            <class name="com.smbc.raft.tests.messaging.JmsMessagingTest"/>
+        </classes>
+    </test>
+
+</suite>

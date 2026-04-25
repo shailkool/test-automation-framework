@@ -2,7 +2,7 @@
 <suite name="Core Framework Suite">
     <test name="Core Tests">
         <packages>
-            <package name="com.automation.core.*"/>
+            <package name="com.smbc.raft.core.*"/>
         </packages>
     </test>
 </suite>

@@ -41,7 +41,7 @@ Test scenarios and test cases:
 test-automation-framework/
 ├── core-framework/                  # Layer 1: Core Framework
 │   ├── src/main/java/
-│   │   └── com/automation/core/
+│   │   └── com/smbc/raft/core/
 │   │       ├── config/              # Configuration management
 │   │       ├── database/            # Database connectivity
 │   │       ├── playwright/          # Playwright management
@@ -49,22 +49,21 @@ test-automation-framework/
 │   │       ├── reporting/           # Test reporting
 │   │       ├── utils/               # Utilities and base classes
 │   │       └── exceptions/          # Custom exceptions
-│   └── src/main/resources/
-│       ├── config/                  # Configuration files
-│       │   ├── default.properties
-│       │   └── qa.properties
-│       └── log4j2.xml              # Logging configuration
+│   ├── src/main/resources/
+│   │   ├── config/                  # Configuration files
+│   │   └── log4j2.xml              # Logging configuration
+│   └── src/test/java/               # Core Framework tests
 │
 ├── application-automation/          # Layer 2: Application Automation
 │   └── src/main/java/
-│       └── com/automation/app/
+│       └── com/smbc/raft/app/
 │           ├── pages/               # Page Objects
 │           ├── api/                 # API Clients
 │           └── database/            # Database Helpers
 │
 ├── application-tests/               # Layer 3: Test Cases
 │   ├── src/test/java/
-│   │   └── com/automation/tests/
+│   │   └── com/smbc/raft/tests/
 │   │       ├── ui/                  # UI test cases
 │   │       ├── api/                 # API test cases
 │   │       ├── database/            # Database test cases
@@ -85,7 +84,8 @@ cd test-automation-framework
 
 ### 2. Install Dependencies
 ```bash
-mvn clean install
+# Build all modules and install to local .m2 repository
+mvn clean install -DskipTests
 ```
 
 ### 3. Install Playwright Browsers
@@ -257,6 +257,31 @@ mvn allure:serve
 - Property file hierarchy
 - System property override
 
+## Docker Execution Architecture
+
+The framework is fully containerized to ensure consistent execution across local development and CI/CD environments.
+
+![Docker Architecture](docs/images/docker_architecture.png)
+
+### Container Strategy
+*   **Multi-Stage Build**: Optimized `Dockerfile` that caches Maven dependencies and provides a lean runtime environment with all Playwright system dependencies.
+*   **Headless Execution**: Pre-configured for headless Chromium runs in Linux-based containers.
+*   **Parallel Sharding**: Support for sharded execution via Docker Compose to scale regression suites across multiple containers.
+*   **Security**: Integrated environment variable interpolation for secure credential management (secrets never baked into the image).
+
+### Quick Start with Docker
+```bash
+# Build the automation image
+docker build -t test-automation:latest .
+
+# Run the smoke suite against QA
+docker run --rm \
+  -v $(pwd)/workspace:/workspace \
+  -e ENV=qa \
+  -e DB_PASSWORD=your_password \
+  test-automation:latest
+```
+
 ## Writing Tests
 
 ### UI Test Example
@@ -362,3 +387,32 @@ For issues and questions:
 ## License
 
 [Your License Here]
+## Maven Commands & Usage Guide
+
+### Build and Installation
+- **Full Build (Skip Tests)**: `mvn clean install -DskipTests`
+- **Build Single Module**: `mvn clean install -pl core-framework`
+- **Update Dependencies**: `mvn clean install -U`
+
+### Quality Gates (Checkstyle, Enforcer, SpotBugs)
+- **Run All Quality Checks**: `mvn validate` (runs on all modules)
+- **Check Specific Module**: `mvn validate -pl core-framework`
+- **Run Only Checkstyle**: `mvn checkstyle:check -pl core-framework`
+- **Run Only Enforcer**: `mvn enforcer:enforce -pl core-framework`
+- **Skip Quality Checks**: `mvn clean verify -Dskip.quality=true`
+
+### Test Execution
+- **Run Smoke Tests**: `mvn test -Dcucumber.filter.tags="@smoke"`
+- **Run Specific Environment**: `mvn test -Denv=qa -Dprofile=local`
+- **Run Specific Suite**: `mvn test -DsuiteXmlFile=src/test/resources/testng.xml`
+- **Run Individual Test**: `mvn test -Dtest=CSVDataHandlingTest`
+
+### Dependency Management
+- **View Dependency Tree**: `mvn dependency:tree`
+- **Check for Updates**: `mvn versions:display-dependency-updates`
+- **Analyze Dependencies**: `mvn dependency:analyze`
+
+### Troubleshooting
+- **Debug Mode**: `mvn <command> -X`
+- **Effective POM**: `mvn help:effective-pom`
+- **Display Properties**: `mvn help:evaluate -Dexpression=project.properties`

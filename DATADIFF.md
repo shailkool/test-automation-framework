@@ -129,12 +129,12 @@ Pass a comma-separated list — matching is by the concatenation of the values:
 ## 2. Java API
 
 The CLI is a thin wrapper around `DataDiff`, `DirectoryDiff`, and
-`DiffHtmlReportGenerator` in `com.automation.core.diff`.
+`DiffHtmlReportGenerator` in `com.smbc.raft.core.diff`.
 
 ### File-level comparison
 
 ```java
-import com.automation.core.diff.*;
+import com.smbc.raft.core.diff.*;
 
 List<Map<String, String>> expected = /* load from anywhere */;
 List<Map<String, String>> actual   = /* load from anywhere */;
@@ -193,7 +193,7 @@ for (FileDiffResult f : result.getFileResults()) {
 should be:` step: when a datatable mismatch occurs it renders an HTML
 diff, attaches it to the Scenario so the masterthought report embeds
 it inline, and fails with a pointer to the file. See
-`application-tests/src/test/java/com/automation/tests/bdd/steps/CsvFilterSteps.java`.
+`application-tests/src/test/java/com/smbc/raft/tests/bdd/steps/CsvFilterSteps.java`.
 
 ---
 

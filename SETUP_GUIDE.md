@@ -219,7 +219,7 @@ mvn -version
 ## Creating Your First Test
 
 ### 1. Create Page Object
-Location: `application-automation/src/main/java/com/automation/app/pages/`
+Location: `application-automation/src/main/java/com/smbc/raft/app/pages/`
 
 ```java
 public class MyPage extends BasePage {
@@ -232,7 +232,7 @@ public class MyPage extends BasePage {
 ```
 
 ### 2. Create Test Class
-Location: `application-tests/src/test/java/com/automation/tests/ui/`
+Location: `application-tests/src/test/java/com/smbc/raft/tests/ui/`
 
 ```java
 public class MyTest extends BaseTest {
@@ -259,7 +259,7 @@ Edit: `application-tests/src/test/resources/testng.xml`
 ```xml
 <test name="My Tests">
     <classes>
-        <class name="com.automation.tests.ui.MyTest"/>
+        <class name="com.smbc.raft.tests.ui.MyTest"/>
     </classes>
 </test>
 ```

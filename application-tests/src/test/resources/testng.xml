@@ -1,50 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
-<suite name="Test Automation Suite" parallel="tests" thread-count="3">
+<suite name="Test Automation Suite" parallel="methods" thread-count="12" data-provider-thread-count="6">
     
     <listeners>
         <listener class-name="io.qameta.allure.testng.AllureTestNg"/>
+        <listener class-name="com.smbc.raft.core.retry.FlakeRetryListener"/>
     </listeners>
     
     <!-- UI Tests -->
     <test name="UI Tests" preserve-order="true">
         <classes>
-            <class name="com.automation.tests.ui.LoginTest"/>
+            <class name="com.smbc.raft.tests.ui.LoginTest"/>
         </classes>
     </test>
     
     <!-- API Tests -->
     <test name="API Tests" preserve-order="true">
         <classes>
-            <class name="com.automation.tests.api.UserApiTest"/>
+            <class name="com.smbc.raft.tests.api.UserApiTest"/>
         </classes>
     </test>
     
     <!-- Database Tests -->
     <test name="Database Tests" preserve-order="true">
         <classes>
-            <class name="com.automation.tests.database.UserDatabaseTest"/>
+            <class name="com.smbc.raft.tests.database.UserDatabaseTest"/>
         </classes>
     </test>
     
     <!-- Integration Tests -->
     <test name="Integration Tests" preserve-order="true">
         <classes>
-            <class name="com.automation.tests.integration.UserEndToEndTest"/>
+            <class name="com.smbc.raft.tests.integration.UserEndToEndTest"/>
         </classes>
     </test>
 
     <!-- Environment Configuration Tests -->
     <test name="Environment Configuration Tests" preserve-order="true">
         <classes>
-            <class name="com.automation.tests.environment.EnvironmentContextTest"/>
+            <class name="com.smbc.raft.tests.environment.EnvironmentContextTest"/>
         </classes>
     </test>
 
     <!-- Run Profile Tests -->
     <test name="Run Profile Tests" preserve-order="true">
         <classes>
-            <class name="com.automation.tests.runprofile.RunProfileContextTest"/>
+            <class name="com.smbc.raft.tests.runprofile.RunProfileContextTest"/>
         </classes>
     </test>
 
@@ -59,7 +60,7 @@
     -->
     <test name="BDD Tests" preserve-order="true">
         <classes>
-            <class name="com.automation.tests.bdd.runner.TaggedCucumberRunner"/>
+            <class name="com.smbc.raft.tests.bdd.runner.TaggedCucumberRunner"/>
         </classes>
     </test>
 
@@ -70,8 +71,8 @@
 
     <test name="Messaging Tests" preserve-order="true">
         <classes>
-            <class name="com.automation.tests.messaging.KafkaMessagingTest"/>
-            <class name="com.automation.tests.messaging.JmsMessagingTest"/>
+            <class name="com.smbc.raft.tests.messaging.KafkaMessagingTest"/>
+            <class name="com.smbc.raft.tests.messaging.JmsMessagingTest"/>
         </classes>
     </test>
     -->

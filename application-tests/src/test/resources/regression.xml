@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Regression Suite" parallel="methods" thread-count="12"
+       data-provider-thread-count="6" verbose="1">
+
+    <listeners>
+        <listener class-name="io.qameta.allure.testng.AllureTestNg"/>
+        <listener class-name="com.smbc.raft.core.retry.FlakeRetryListener"/>
+    </listeners>
+
+    <test name="Framework Config">
+        <groups>
+            <run><include name="smoke"/><include name="regression"/></run>
+        </groups>
+        <classes>
+            <class name="com.smbc.raft.tests.environment.EnvironmentContextTest"/>
+        </classes>
+    </test>
+
+    <test name="API Tests">
+        <groups>
+            <run><include name="smoke"/><include name="regression"/></run>
+        </groups>
+        <classes>
+            <class name="com.smbc.raft.tests.api.UserApiTest"/>
+            <class name="com.smbc.raft.tests.api.DataDrivenUserApiTest"/>
+        </classes>
+    </test>
+
+    <test name="Database Tests">
+        <groups>
+            <run><include name="smoke"/><include name="regression"/></run>
+        </groups>
+        <classes>
+            <class name="com.smbc.raft.tests.database.UserDatabaseTest"/>
+        </classes>
+    </test>
+
+    <!-- Integration tests run sequentially — ordered steps, shared state -->
+    <test name="Integration Tests" preserve-order="true">
+        <groups>
+            <run><include name="regression"/></run>
+        </groups>
+        <classes>
+            <class name="com.smbc.raft.tests.integration.UserEndToEndTest"/>
+        </classes>
+    </test>
+
+</suite>

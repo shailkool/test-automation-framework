@@ -23,7 +23,7 @@ The framework supports three predefined loop types plus custom:
 ### Basic Usage
 
 ```java
-import com.automation.core.retry.*;
+import com.smbc.raft.core.retry.*;
 
 // Validate with SHORT loop (15 attempts, 2s interval)
 ValidationResult<Integer> result = RetryValidator.validateWithRetry(
@@ -136,7 +136,7 @@ result.getSummary();           // Formatted summary string
 ### Basic Data Comparison
 
 ```java
-import com.automation.core.diff.*;
+import com.smbc.raft.core.diff.*;
 
 // Prepare expected data
 List<Map<String, String>> expected = new ArrayList<>();
