@@ -411,8 +411,8 @@
                         <phase>validate</phase>
                         <goals><goal>check</goal></goals>
                         <configuration>
-                            <configLocation>checkstyle/automation-checks.xml</configLocation>
-                            <suppressionsLocation>checkstyle/suppressions.xml</suppressionsLocation>
+                            <configLocation>${session.executionRootDirectory}/checkstyle/automation-checks.xml</configLocation>
+                            <suppressionsLocation>${session.executionRootDirectory}/checkstyle/suppressions.xml</suppressionsLocation>
                             <includeTestSourceDirectory>true</includeTestSourceDirectory>
                             <failOnViolation>true</failOnViolation>
                             <violationSeverity>warning</violationSeverity>
