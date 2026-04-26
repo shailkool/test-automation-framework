@@ -82,22 +82,55 @@ public class ConfigurationManager {
     }
 
     /**
-     * Resolves placeholders in the form of ${ENV_VAR_NAME} using environment variables.
+     * Resolves placeholders in the form of ${VAR} or ${ENV:VAR} using environment variables.
+     * Supports nested placeholders and falls back to system properties.
      */
     private String resolvePlaceholders(String value) {
-        if (value != null && value.contains("${") && value.contains("}")) {
-            int start = value.indexOf("${");
-            int end = value.indexOf("}", start);
-            if (end != -1) {
-                String placeholder = value.substring(start + 2, end);
-                String envValue = System.getenv(placeholder);
-                if (envValue != null) {
-                    String resolved = value.substring(0, start) + envValue + value.substring(end + 1);
-                    return resolvePlaceholders(resolved); // Recursive for multiple placeholders
-                }
-            }
+        if (value == null || !value.contains("${") || !value.contains("}")) {
+            return value;
         }
-        return value;
+
+        StringBuilder result = new StringBuilder();
+        int lastPos = 0;
+        int start;
+
+        while ((start = value.indexOf("${", lastPos)) != -1) {
+            result.append(value, lastPos, start);
+            int end = value.indexOf("}", start);
+            if (end == -1) {
+                break;
+            }
+
+            String placeholder = value.substring(start + 2, end);
+            String lookupKey = placeholder;
+            if (placeholder.startsWith("ENV:")) {
+                lookupKey = placeholder.substring(4);
+            }
+
+            // Priority: Environment Variable -> System Property
+            String resolvedValue = System.getenv(lookupKey);
+            if (resolvedValue == null) {
+                resolvedValue = System.getProperty(lookupKey);
+            }
+
+            if (resolvedValue != null) {
+                result.append(resolvedValue);
+            } else {
+                // If not found, keep the placeholder as is
+                result.append("${").append(placeholder).append("}");
+                log.debug("Placeholder '{}' could not be resolved from ENV or System properties", placeholder);
+            }
+
+            lastPos = end + 1;
+        }
+        result.append(value.substring(lastPos));
+
+        String finalValue = result.toString();
+        // Handle recursive resolution if the resolved value itself contains placeholders
+        if (finalValue.contains("${") && !finalValue.equals(value)) {
+            return resolvePlaceholders(finalValue);
+        }
+        return finalValue;
     }
     
     public int getIntProperty(String key, int defaultValue) {

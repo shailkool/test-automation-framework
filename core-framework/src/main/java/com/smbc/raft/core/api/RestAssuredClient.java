@@ -124,6 +124,23 @@ public class RestAssuredClient {
         requestSpec.auth().basic(username, password);
         return this;
     }
+
+    /**
+     * Enable relaxed HTTPS validation (trust all certificates).
+     * Useful for testing against environments with self-signed certificates.
+     */
+    public RestAssuredClient setRelaxedHTTPSValidation() {
+        requestSpec.relaxedHTTPSValidation();
+        return this;
+    }
+
+    /**
+     * Set a custom TrustStore for SSL validation.
+     */
+    public RestAssuredClient setTrustStore(String path, String password) {
+        requestSpec.trustStore(new java.io.File(path), password);
+        return this;
+    }
     
     /**
      * GET request

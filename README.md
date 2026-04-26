@@ -137,6 +137,15 @@ This utilizes `docker-compose.shards.yml` to orchestrate multiple test instances
 - **JVM Fork Reuse**: Configured in `pom.xml` via `reuseForks=true` to minimize JVM startup overhead.
 - **Parallel Execution**: Enabled at the method level by default in `testng.xml`.
 
+## Security & Credentials
+The framework implements enterprise-grade security features to protect sensitive data:
+- **Secret Management**: Decouple credentials from code using `${VAR}` placeholders.
+- **Dynamic Resolution**: Automatic lookup from Environment Variables and System Properties.
+- **Log Masking**: Sensitive database URLs and passwords are automatically masked in logs.
+- **SSL/TLS Support**: Built-in support for self-signed certificates and custom TrustStores.
+
+For detailed instructions, see [SECURITY.md](SECURITY.md).
+
 ## Running Tests
 
 ### Run All Tests

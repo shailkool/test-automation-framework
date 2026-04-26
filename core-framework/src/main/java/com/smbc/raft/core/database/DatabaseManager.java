@@ -104,7 +104,8 @@ public class DatabaseManager {
 
         } catch (Exception e) {
             throw new DatabaseException(
-                "Failed to initialise database connection: " + connectionName, e);
+                String.format("Failed to initialise database connection [%s] for URL: %s", 
+                    connectionName, maskUrl(url)), e);
         }
     }
 
@@ -269,6 +270,23 @@ public class DatabaseManager {
     
     @Override
     public String toString() {
-        return dataSource != null ? dataSource.toString() : "DatabaseManager (pool not initialized)";
+        return String.format("DatabaseManager[connection=%s, type=%s]", 
+            connectionName, dataSource != null ? "initialized" : "uninitialized");
+    }
+
+    /**
+     * Masks sensitive information in a JDBC URL for safe logging.
+     */
+    private String maskUrl(String url) {
+        if (url == null) {
+            return null;
+        }
+        // Mask passwords in query parameters: ?password=... or ;password=...
+        String masked = url.replaceAll("(?i)(password|pwd|pass)=[^&;]*", "$1=********");
+        
+        // Mask credentials in Oracle thin style: user/pass@host
+        masked = masked.replaceAll("(?i)(?<=:)[^:/@]+(?=@)", "********");
+        
+        return masked;
     }
 }
