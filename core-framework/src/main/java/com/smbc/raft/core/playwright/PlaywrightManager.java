@@ -3,7 +3,6 @@ package com.smbc.raft.core.playwright;
 import com.smbc.raft.core.config.ConfigurationManager;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
-import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
@@ -15,15 +14,13 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class PlaywrightManager {
     
-    private static final ThreadLocal<Playwright> PLAYWRIGHT = new ThreadLocal<>();
-    private static final ThreadLocal<Browser> BROWSER = new ThreadLocal<>();
     private static final ThreadLocal<BrowserContext> CONTEXT = new ThreadLocal<>();
     private static final ThreadLocal<Page> PAGE = new ThreadLocal<>();
     
     private static ConfigurationManager config = ConfigurationManager.getInstance();
     
     /**
-     * Initialize Playwright and create BROWSER
+     * Initialize Playwright and create a fresh, isolated BrowserContext for the current thread.
      */
     public static void initializeBrowser() {
         initializeBrowser(BrowserEngine.valueOf(config.getBrowser().toUpperCase(java.util.Locale.ROOT)));
@@ -34,48 +31,18 @@ public class PlaywrightManager {
     }
 
     /**
-     * Launch Playwright with an explicit Chromium channel (e.g. {@code "chrome"}
-     * or {@code "msedge"}) so run profiles that ask for stock Chrome or Edge
-     * get the actual branded binary rather than bundled Chromium. The channel
-     * is ignored for Firefox / WebKit engines.
+     * Launch a fresh BrowserContext using a pooled Browser process.
      */
     public static void initializeBrowser(BrowserEngine browserEngine, String channel) {
         try {
-            // Create Playwright instance
-            Playwright pw = Playwright.create();
-            PLAYWRIGHT.set(pw);
+            // Get shared browser process from pool
+            Browser br = BrowserPool.getBrowser(browserEngine, channel);
 
-            // Launch BROWSER
+            // Create fresh CONTEXT
             Browser.NewContextOptions contextOptions = new Browser.NewContextOptions()
                     .setViewportSize(1920, 1080)
                     .setAcceptDownloads(true);
 
-            BrowserType.LaunchOptions launchOptions = new BrowserType.LaunchOptions()
-                    .setHeadless(config.isHeadless())
-                    .setTimeout(config.getTimeout());
-
-            if (channel != null && !channel.isBlank() && browserEngine == BrowserEngine.CHROMIUM) {
-                launchOptions.setChannel(channel);
-            }
-
-            Browser br;
-            switch (browserEngine) {
-                case CHROMIUM:
-                    br = pw.chromium().launch(launchOptions);
-                    break;
-                case FIREFOX:
-                    br = pw.firefox().launch(launchOptions);
-                    break;
-                case WEBKIT:
-                    br = pw.webkit().launch(launchOptions);
-                    break;
-                default:
-                    throw new IllegalArgumentException("Unsupported browser engine: " + browserEngine);
-            }
-
-            BROWSER.set(br);
-
-            // Create CONTEXT
             BrowserContext ctx = br.newContext(contextOptions);
             CONTEXT.set(ctx);
 
@@ -84,43 +51,49 @@ public class PlaywrightManager {
             pg.setDefaultTimeout(config.getTimeout());
             PAGE.set(pg);
 
-            log.info("Playwright BROWSER initialized: engine={}, channel={}", browserEngine, channel);
+            log.debug("Playwright context and page initialized for current thread");
 
         } catch (Exception e) {
-            log.error("Error initializing Playwright BROWSER", e);
+            log.error("Error initializing Playwright context/page", e);
             throw e;
         }
     }
     
     /**
-     * Get current Playwright instance
+     * Get the global Playwright instance
      */
     public static Playwright getPlaywright() {
-        return PLAYWRIGHT.get();
+        return BrowserPool.getPlaywright();
     }
     
     /**
-     * Get current BROWSER instance
+     * Get the pooled Browser instance corresponding to current configuration
      */
     public static Browser getBrowser() {
-        return BROWSER.get();
+        return BrowserPool.getBrowser(
+            BrowserEngine.valueOf(config.getBrowser().toUpperCase(java.util.Locale.ROOT)),
+            null
+        );
     }
     
     /**
-     * Get current CONTEXT
+     * Get current thread's BrowserContext
      */
     public static BrowserContext getContext() {
         return CONTEXT.get();
     }
     
     /**
-     * Get current PAGE
+     * Get current thread's Page
      */
     public static Page getPage() {
-        if (PAGE.get() == null) {
-            createNewPage();
+        Page pg = PAGE.get();
+        if (pg == null) {
+            log.debug("Page not found for thread, initializing...");
+            initializeBrowser();
+            pg = PAGE.get();
         }
-        return PAGE.get();
+        return pg;
     }
     
     /**
@@ -150,7 +123,8 @@ public class PlaywrightManager {
     }
     
     /**
-     * Close BROWSER and cleanup
+     * Close the current context and page. 
+     * The underlying pooled browser process remains alive for the next test.
      */
     public static void closeBrowser() {
         try {
@@ -166,22 +140,10 @@ public class PlaywrightManager {
                 CONTEXT.remove();
             }
             
-            Browser br = BROWSER.get();
-            if (br != null) {
-                br.close();
-                BROWSER.remove();
-            }
-            
-            Playwright pw = PLAYWRIGHT.get();
-            if (pw != null) {
-                pw.close();
-                PLAYWRIGHT.remove();
-            }
-            
-            log.info("Playwright BROWSER closed");
+            log.debug("Playwright context and page closed for thread");
             
         } catch (Exception e) {
-            log.error("Error closing Playwright BROWSER", e);
+            log.error("Error closing Playwright context/page", e);
         }
     }
     

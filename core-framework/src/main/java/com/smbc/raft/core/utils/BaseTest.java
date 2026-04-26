@@ -77,6 +77,9 @@ public class BaseTest {
     public void afterSuite() {
         log.info("Test Suite Completed");
         
+        // Close all pooled browser processes
+        com.smbc.raft.core.playwright.BrowserPool.closeAll();
+
         // Close all database connections
         DatabaseManager.closeAll();
 

@@ -1,0 +1,48 @@
+version: "3.9"
+
+# This compose file enables dynamic sharding of the regression suite.
+# It uses the same base image but passes different shard indices to each container.
+# All shards contribute results to the same shared volume for aggregation.
+
+x-shard-base: &shard-base
+  image: ${IMAGE_NAME:-test-automation}:${IMAGE_TAG:-latest}
+  volumes:
+    - workspace:/workspace
+  environment:
+    ENV: ${ENV:-qa}
+    SHARD_TOTAL: 3
+    WORKSPACE: /workspace
+  networks:
+    - test-net
+
+services:
+  shard-1:
+    <<: *shard-base
+    container_name: raft-shard-1
+    environment:
+      SHARD_INDEX: 0
+    command: >
+      mvn test -pl application-tests -DshardIndex=0 -DshardTotal=3 --no-transfer-progress
+
+  shard-2:
+    <<: *shard-base
+    container_name: raft-shard-2
+    environment:
+      SHARD_INDEX: 1
+    command: >
+      mvn test -pl application-tests -DshardIndex=1 -DshardTotal=3 --no-transfer-progress
+
+  shard-3:
+    <<: *shard-base
+    container_name: raft-shard-3
+    environment:
+      SHARD_INDEX: 2
+    command: >
+      mvn test -pl application-tests -DshardIndex=2 -DshardTotal=3 --no-transfer-progress
+
+volumes:
+  workspace:
+
+networks:
+  test-net:
+    driver: bridge

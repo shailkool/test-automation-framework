@@ -97,25 +97,45 @@ mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="in
 
 Edit the configuration files in `core-framework/src/main/resources/config/`:
 
-**default.properties**:
-```properties
-browser=chromium
-headless=false
-timeout=30000
-api.base.url=https://api.example.com
-db.type=oracle
-db.url=jdbc:oracle:thin:@localhost:1521:xe
-db.username=testuser
-db.password=testpass
+- `browser`: chromium | firefox | webkit
+- `headless`: true | false
+- `timeout`: Global Playwright timeout (ms)
+- `test.timeout.ms`: Individual TestNG test method timeout (ms)
+
+## Running Tests
+
+### Standard Execution
+```bash
+mvn test -pl application-tests -Denv=qa
 ```
 
-**qa.properties** (environment-specific):
-```properties
-api.base.url=https://api-qa.example.com
-db.url=jdbc:oracle:thin:@qa-server:1521:qadb
-db.username=qa_user
-db.password=qa_password
+### Dynamic Sharding (Horizontal Scaling)
+The framework supports dynamic, runtime sharding. You can split a single TestNG suite across multiple processes/containers without modifying XML files:
+
+```bash
+# Run first half of the tests
+mvn test -DshardIndex=0 -DshardTotal=2
+
+# Run second half of the tests
+mvn test -DshardIndex=1 -DshardTotal=2
 ```
+
+### Docker Sharding
+For large regression suites, use the provided shard runner to spin up parallel containers:
+
+```bash
+# On Unix
+./bin/shard-runner.sh
+
+# On Windows
+./bin/shard-runner.ps1
+```
+This utilizes `docker-compose.shards.yml` to orchestrate multiple test instances contributing to a shared report volume.
+
+## Resource Optimization
+- **Browser Pooling**: The framework maintains a `BrowserPool` that reuses the heavy browser process across tests within a thread. Each test receives a lightweight, isolated `BrowserContext`.
+- **JVM Fork Reuse**: Configured in `pom.xml` via `reuseForks=true` to minimize JVM startup overhead.
+- **Parallel Execution**: Enabled at the method level by default in `testng.xml`.
 
 ## Running Tests
 

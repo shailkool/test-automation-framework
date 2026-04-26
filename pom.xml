@@ -341,9 +341,15 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.5.5</version>
                     <configuration>
+                        <forkCount>1</forkCount>
+                        <reuseForks>true</reuseForks>
+                        <argLine>-Xmx2g -XX:+UseG1GC</argLine>
                         <suiteXmlFiles>
                             <suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
                         </suiteXmlFiles>
+                        <systemPropertyVariables>
+                            <env>${env}</env>
+                        </systemPropertyVariables>
                     </configuration>
                 </plugin>
 
