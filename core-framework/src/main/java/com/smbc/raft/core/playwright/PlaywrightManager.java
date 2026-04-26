@@ -8,6 +8,8 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import lombok.extern.log4j.Log4j2;
 
+import java.nio.file.Paths;
+
 /**
  * Manages Playwright browser instances and contexts
  */
@@ -38,10 +40,14 @@ public class PlaywrightManager {
             // Get shared browser process from pool
             Browser br = BrowserPool.getBrowser(browserEngine, channel);
 
-            // Create fresh CONTEXT
+            // Create fresh CONTEXT with optional video recording
             Browser.NewContextOptions contextOptions = new Browser.NewContextOptions()
                     .setViewportSize(1920, 1080)
                     .setAcceptDownloads(true);
+
+            if (config.isVideoEnabled()) {
+                contextOptions.setRecordVideoDir(Paths.get(config.getVideoDir()));
+            }
 
             BrowserContext ctx = br.newContext(contextOptions);
             CONTEXT.set(ctx);

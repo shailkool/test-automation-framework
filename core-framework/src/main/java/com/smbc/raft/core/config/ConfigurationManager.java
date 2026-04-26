@@ -180,4 +180,26 @@ public class ConfigurationManager {
     public String getJmsBrokerUrl() {
         return getProperty("jms.broker.url");
     }
+
+    // Reporting & Metrics
+    public String getExtentReportDir() {
+        return getProperty("report.extent.dir", "target/extent-reports/");
+    }
+
+    public String getMetricsDir() {
+        return getProperty("report.metrics.dir", "target/metrics/");
+    }
+
+    public boolean isScreenshotOnFailure() {
+        return getBooleanProperty("report.screenshots.on.failure", true);
+    }
+
+    // Video Recording
+    public boolean isVideoEnabled() {
+        return getBooleanProperty("playwright.video.enabled", true);
+    }
+
+    public String getVideoDir() {
+        return getProperty("playwright.video.dir", "target/videos/");
+    }
 }

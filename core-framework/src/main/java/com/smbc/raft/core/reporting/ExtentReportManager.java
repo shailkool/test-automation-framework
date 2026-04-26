@@ -6,9 +6,11 @@ import com.aventstack.extentreports.MediaEntityBuilder;
 import com.aventstack.extentreports.Status;
 import com.aventstack.extentreports.reporter.ExtentSparkReporter;
 import com.aventstack.extentreports.reporter.configuration.Theme;
+import com.smbc.raft.core.config.ConfigurationManager;
 import lombok.extern.log4j.Log4j2;
 
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
@@ -22,6 +24,7 @@ public class ExtentReportManager {
     private static ExtentReports extent;
     private static ThreadLocal<ExtentTest> test = new ThreadLocal<>();
     private static String reportPath;
+    private static final ConfigurationManager CONFIG = ConfigurationManager.getInstance();
     
     /**
      * Initialize extent reports
@@ -29,12 +32,13 @@ public class ExtentReportManager {
     public static synchronized void initReports() {
         if (extent == null) {
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
-            reportPath = "test-output/extent-reports/TestReport_" + timestamp + ".html";
+            String reportDir = CONFIG.getExtentReportDir();
+            reportPath = reportDir + "TestReport_" + timestamp + ".html";
             
-            // Create directory if it doesn't exist
-            File reportDir = new File("test-output/extent-reports");
-            if (!reportDir.exists()) {
-                reportDir.mkdirs();
+            try {
+                Files.createDirectories(Paths.get(reportDir));
+            } catch (Exception e) {
+                log.error("Failed to create report directory: {}", reportDir, e);
             }
             
             ExtentSparkReporter sparkReporter = new ExtentSparkReporter(reportPath);

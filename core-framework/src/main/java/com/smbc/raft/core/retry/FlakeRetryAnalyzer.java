@@ -82,6 +82,7 @@ public class FlakeRetryAnalyzer implements IRetryAnalyzer {
         int attempts = attemptsObj != null ? attemptsObj : 1;
 
         if (attempts <= MAX_ATTEMPTS) {
+            result.setAttribute("retryCount", attempts);
             log.warn("Retrying [{}/{}] {} — transient failure: {}",
                     attempts, MAX_ATTEMPTS, key, cause.getMessage());
             return true;
