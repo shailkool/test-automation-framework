@@ -19,6 +19,12 @@
         <property name="max" value="500"/>
     </module>
 
+    <!-- ── FORMATTING — COMPATIBILITY WITH SPOTLESS/GOOGLE-FORMAT ── -->
+    <module name="LineLength">
+        <property name="max" value="120"/>
+        <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
+    </module>
+
     <module name="TreeWalker">
 
         <!-- ── BANNED PATTERNS — these will FAIL the build ─────────────── -->
@@ -70,9 +76,9 @@
         </module>
 
         <!-- ── METHOD LENGTH — keeps test methods focused ───────────────── -->
-        <!-- Test methods over 60 lines usually contain multiple concerns -->
+        <!-- Test methods over 80 lines usually contain multiple concerns -->
         <module name="MethodLength">
-            <property name="max" value="60"/>
+            <property name="max" value="80"/>
             <property name="tokens" value="METHOD_DEF"/>
             <message key="maxLen.method"
                 value="Method ''{0}'' is {1} lines long (max {2}). Extract steps into helper methods or split into separate @Test methods."/>
@@ -121,16 +127,6 @@
         <module name="EmptyStatement"/>
         <module name="EqualsHashCode"/>
         <module name="StringLiteralEquality"/>
-
-        <!-- ── JAVADOC ────────────────────────────────────────────────── -->
-        <!-- Public methods in core-framework and application-automation 
-             must have Javadoc. Suppressed for test classes via suppressions.xml -->
-        <!-- Temporarily disabled to allow build to pass while cleaning up codebase
-        <module name="MissingJavadocMethod">
-            <property name="scope" value="public"/>
-            <property name="allowMissingPropertyJavadoc" value="true"/>
-        </module>
-        -->
 
     </module>
 </module>

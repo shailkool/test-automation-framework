@@ -63,6 +63,8 @@
         <slf4j.version>2.0.16</slf4j.version>
         <joda-time.version>2.14.1</joda-time.version>
         <skip.quality>false</skip.quality>
+        <checkstyle.config.location>${session.executionRootDirectory}/checkstyle/automation-checks.xml</checkstyle.config.location>
+        <checkstyle.suppressions.location>${session.executionRootDirectory}/checkstyle/suppressions.xml</checkstyle.suppressions.location>
 
         <!-- Transitive & Convergence Versions -->
         <commons-lang3.version>3.20.0</commons-lang3.version>
@@ -403,6 +405,30 @@
                         </lifecycleMappingMetadata>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>com.diffplug.spotless</groupId>
+                    <artifactId>spotless-maven-plugin</artifactId>
+                    <version>2.43.0</version>
+                    <configuration>
+                        <java>
+                            <googleJavaFormat>
+                                <version>1.19.1</version>
+                                <style>GOOGLE</style>
+                            </googleJavaFormat>
+                            <removeUnusedImports/>
+                            <trimTrailingWhitespace/>
+                            <endWithNewline/>
+                        </java>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                            <phase>validate</phase>
+                        </execution>
+                    </executions>
+                </plugin>
             </plugins>
         </pluginManagement>
 
@@ -417,8 +443,8 @@
                         <phase>validate</phase>
                         <goals><goal>check</goal></goals>
                         <configuration>
-                            <configLocation>${session.executionRootDirectory}/checkstyle/automation-checks.xml</configLocation>
-                            <suppressionsLocation>${session.executionRootDirectory}/checkstyle/suppressions.xml</suppressionsLocation>
+                            <configLocation>${checkstyle.config.location}</configLocation>
+                            <suppressionsLocation>${checkstyle.suppressions.location}</suppressionsLocation>
                             <includeTestSourceDirectory>true</includeTestSourceDirectory>
                             <failOnViolation>true</failOnViolation>
                             <violationSeverity>warning</violationSeverity>
@@ -475,6 +501,10 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

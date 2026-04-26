@@ -53,4 +53,9 @@
     <suppress checks="MethodLength"
               files="RetryValidator\.java$"/>
 
+    <!-- Compatibility with Spotless / Google Java Format -->
+    <suppress checks="LineLength" files=".*"/>
+    <suppress checks="FinalParameters" files=".*"/>
+    <suppress checks="Indentation" files=".*"/>
+
 </suppressions>

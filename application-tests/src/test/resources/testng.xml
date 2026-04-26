@@ -7,6 +7,7 @@
         <listener class-name="com.smbc.raft.core.retry.FlakeRetryListener"/>
         <listener class-name="com.smbc.raft.core.utils.ShardingListener"/>
         <listener class-name="com.smbc.raft.core.reporting.TestMetricsCollector"/>
+        <listener class-name="com.smbc.raft.core.utils.RaftTestTransformer"/>
     </listeners>
     
     <!-- UI Tests -->

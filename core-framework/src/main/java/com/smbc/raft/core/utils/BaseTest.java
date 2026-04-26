@@ -13,80 +13,84 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
 
-/**
- * Base test class with setup and teardown methods
- */
+/** Base test class with setup and teardown methods */
 @Log4j2
 public class BaseTest {
-    
-    @BeforeSuite
-    public void beforeSuite() {
-        log.info("Test Suite Started");
-        ExtentReportManager.initReports();
+
+  @BeforeSuite
+  public void beforeSuite() {
+    log.info("Test Suite Started");
+    ExtentReportManager.initReports();
+  }
+
+  @BeforeClass
+  public void beforeClass() {
+    log.info("Test Class Started: {}", this.getClass().getSimpleName());
+  }
+
+  @BeforeMethod
+  public void beforeMethod(ITestResult result) {
+    log.info("Test Method Started: {}", result.getMethod().getMethodName());
+    ExtentReportManager.createTest(result.getMethod().getMethodName());
+
+    // Auto-assign categories from TestNG groups
+    String[] groups = result.getMethod().getGroups();
+    if (groups != null && groups.length > 0) {
+      ExtentReportManager.assignCategory(groups);
     }
-    
-    @BeforeClass
-    public void beforeClass() {
-        log.info("Test Class Started: {}", this.getClass().getSimpleName());
-    }
-    
-    @BeforeMethod
-    public void beforeMethod(ITestResult result) {
-        log.info("Test Method Started: {}", result.getMethod().getMethodName());
-        ExtentReportManager.createTest(result.getMethod().getMethodName());
-    }
-    
-    @AfterMethod
-    public void afterMethod(ITestResult result) {
-        // Log test result
-        if (result.getStatus() == ITestResult.FAILURE) {
-            log.error("Test Failed: {}", result.getMethod().getMethodName());
-            
-            // Capture screenshot if browser is open
-            try {
-                byte[] screenshot = PlaywrightManager.takeScreenshot();
-                if (screenshot != null) {
-                    ExtentReportManager.attachScreenshot(screenshot);
-                }
-            } catch (Exception e) {
-                log.warn("Could not capture screenshot", e);
-            }
-            
-            ExtentReportManager.logFail(result.getThrowable().getMessage());
-        } else if (result.getStatus() == ITestResult.SUCCESS) {
-            log.info("Test Passed: {}", result.getMethod().getMethodName());
-            ExtentReportManager.logPass("Test passed successfully");
-        } else if (result.getStatus() == ITestResult.SKIP) {
-            log.warn("Test Skipped: {}", result.getMethod().getMethodName());
-            ExtentReportManager.logSkip("Test was skipped");
+  }
+
+  @AfterMethod
+  public void afterMethod(ITestResult result) {
+    // Log test result
+    if (result.getStatus() == ITestResult.FAILURE) {
+      log.error("Test Failed: {}", result.getMethod().getMethodName());
+
+      // Capture screenshot if browser is open
+      try {
+        byte[] screenshot = PlaywrightManager.takeScreenshot();
+        if (screenshot != null) {
+          ExtentReportManager.attachScreenshot(screenshot);
         }
-        
-        // Clean up all test data created during this test
-        com.smbc.raft.core.data.TestDataRegistry.cleanup();
+      } catch (Exception e) {
+        log.warn("Could not capture screenshot", e);
+      }
 
-        // Close browser after each test
-        PlaywrightManager.closeBrowser();
+      ExtentReportManager.logFail(result.getThrowable().getMessage());
+    } else if (result.getStatus() == ITestResult.SUCCESS) {
+      log.info("Test Passed: {}", result.getMethod().getMethodName());
+      ExtentReportManager.logPass("Test passed successfully");
+    } else if (result.getStatus() == ITestResult.SKIP) {
+      log.warn("Test Skipped: {}", result.getMethod().getMethodName());
+      ExtentReportManager.logSkip("Test was skipped");
     }
-    
-    @AfterClass
-    public void afterClass() {
-        log.info("Test Class Completed: {}", this.getClass().getSimpleName());
-    }
-    
-    @AfterSuite
-    public void afterSuite() {
-        log.info("Test Suite Completed");
-        
-        // Close all pooled browser processes
-        com.smbc.raft.core.playwright.BrowserPool.closeAll();
 
-        // Close all database connections
-        DatabaseManager.closeAll();
+    // Clean up all test data created during this test
+    com.smbc.raft.core.data.TestDataRegistry.cleanup();
 
-        // Close all messaging clients (Kafka, JMS/MQ)
-        MessagingManager.closeAll();
+    // Close browser after each test
+    PlaywrightManager.closeBrowser();
+  }
 
-        // Flush extent reports
-        ExtentReportManager.flushReports();
-    }
+  @AfterClass
+  public void afterClass() {
+    log.info("Test Class Completed: {}", this.getClass().getSimpleName());
+  }
+
+  @AfterSuite
+  public void afterSuite() {
+    log.info("Test Suite Completed");
+
+    // Close all pooled browser processes
+    com.smbc.raft.core.playwright.BrowserPool.closeAll();
+
+    // Close all database connections
+    DatabaseManager.closeAll();
+
+    // Close all messaging clients (Kafka, JMS/MQ)
+    MessagingManager.closeAll();
+
+    // Flush extent reports
+    ExtentReportManager.flushReports();
+  }
 }

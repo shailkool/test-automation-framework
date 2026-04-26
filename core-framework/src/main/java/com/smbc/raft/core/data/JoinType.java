@@ -1,11 +1,9 @@
 package com.smbc.raft.core.data;
 
-/**
- * Supported join types for DataTable operations.
- */
+/** Supported join types for DataTable operations. */
 public enum JoinType {
-    INNER,
-    LEFT,
-    RIGHT,
-    FULL
+  INNER,
+  LEFT,
+  RIGHT,
+  FULL
 }

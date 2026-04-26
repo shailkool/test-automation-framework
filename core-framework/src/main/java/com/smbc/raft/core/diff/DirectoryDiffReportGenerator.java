@@ -1,242 +1,280 @@
 package com.smbc.raft.core.diff;
 
-import lombok.extern.log4j.Log4j2;
-
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import lombok.extern.log4j.Log4j2;
 
 /**
- * Renders a {@link DirectoryDiffResult} as a standalone HTML summary page
- * ({@code index.html}) listing every matched file pair with status badges,
- * per-file counters, aggregate totals, and links out to the per-file detail
- * reports produced by {@link DiffReportGenerator}.
+ * Renders a {@link DirectoryDiffResult} as a standalone HTML summary page ({@code index.html})
+ * listing every matched file pair with status badges, per-file counters, aggregate totals, and
+ * links out to the per-file detail reports produced by {@link DiffReportGenerator}.
  *
- * <p>The summary uses the same colour palette, pill components, and
- * interaction patterns as {@link DiffHtmlReportGenerator} for visual
- * consistency across the two levels of report.
+ * <p>The summary uses the same colour palette, pill components, and interaction patterns as {@link
+ * DiffHtmlReportGenerator} for visual consistency across the two levels of report.
  */
 @Log4j2
 public final class DirectoryDiffReportGenerator {
 
-    private DirectoryDiffReportGenerator() {
+  private DirectoryDiffReportGenerator() {}
+
+  public static void saveIndex(DirectoryDiffResult result, String title, Path outputPath) {
+    try {
+      java.nio.file.Files.createDirectories(outputPath.toAbsolutePath().getParent());
+    } catch (IOException e) {
+      log.warn("Could not create parent directory for {}: {}", outputPath, e.getMessage());
     }
-
-    public static void saveIndex(DirectoryDiffResult result, String title, Path outputPath) {
-        try {
-            java.nio.file.Files.createDirectories(outputPath.toAbsolutePath().getParent());
-        } catch (IOException e) {
-            log.warn("Could not create parent directory for {}: {}", outputPath, e.getMessage());
-        }
-        String html = renderHtml(result, title, outputPath);
-        try (FileWriter w = new FileWriter(outputPath.toFile())) {
-            w.write(html);
-            log.info("Directory diff summary written to {}", outputPath.toAbsolutePath());
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to write summary report: " + outputPath, e);
-        }
+    String html = renderHtml(result, title, outputPath);
+    try (FileWriter w = new FileWriter(outputPath.toFile())) {
+      w.write(html);
+      log.info("Directory diff summary written to {}", outputPath.toAbsolutePath());
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to write summary report: " + outputPath, e);
     }
+  }
 
-    public static String renderHtml(DirectoryDiffResult result, String title, Path outputPath) {
-        int total     = result.getTotalFiles();
-        int identical = result.getIdenticalFiles();
-        int differ    = result.getFilesWithDifferences();
-        int onlyOld   = result.getOnlyOldFiles();
-        int onlyNew   = result.getOnlyNewFiles();
+  public static String renderHtml(DirectoryDiffResult result, String title, Path outputPath) {
+    int total = result.getTotalFiles();
+    int identical = result.getIdenticalFiles();
+    int differ = result.getFilesWithDifferences();
+    int onlyOld = result.getOnlyOldFiles();
+    int onlyNew = result.getOnlyNewFiles();
 
-        double matchPct = result.getOverallMatchPercentage();
-        String tone = matchPct >= 99.999 ? "high" : matchPct >= 90.0 ? "mid" : "low";
-        String pageTitle = (title == null || title.isBlank()) ? "Directory Diff" : title;
+    double matchPct = result.getOverallMatchPercentage();
+    String tone = matchPct >= 99.999 ? "high" : matchPct >= 90.0 ? "mid" : "low";
+    String pageTitle = (title == null || title.isBlank()) ? "Directory Diff" : title;
 
-        StringBuilder html = new StringBuilder(12 * 1024);
-        html.append("<!DOCTYPE html>\n<html lang='en'>\n<head>\n");
-        html.append("<meta charset='UTF-8'>\n<meta name='viewport' content='width=device-width, initial-scale=1.0'>\n");
-        html.append("<title>").append(escape(pageTitle)).append("</title>\n");
-        html.append(STYLES);
-        html.append("</head>\n<body>\n<div class='container'>\n");
+    StringBuilder html = new StringBuilder(12 * 1024);
+    html.append("<!DOCTYPE html>\n<html lang='en'>\n<head>\n");
+    html.append(
+        "<meta charset='UTF-8'>\n<meta name='viewport' content='width=device-width, initial-scale=1.0'>\n");
+    html.append("<title>").append(escape(pageTitle)).append("</title>\n");
+    html.append(STYLES);
+    html.append("</head>\n<body>\n<div class='container'>\n");
 
-        // title bar
-        html.append("<div class='title-bar'>\n");
-        html.append("  <h1 class='title'>Directory Diff <span class='dot'>·</span> ")
-            .append(escape(pageTitle))
-            .append("<span class='subtitle'>(")
-            .append(total).append(" file").append(total == 1 ? "" : "s").append(" compared)</span></h1>\n");
-        html.append("  <span class='match-badge tone-").append(tone).append("'>")
-            .append("<span class='bullet'></span>")
-            .append(String.format("%.1f", matchPct)).append("% rows match</span>\n");
-        html.append("</div>\n");
+    // title bar
+    html.append("<div class='title-bar'>\n");
+    html.append("  <h1 class='title'>Directory Diff <span class='dot'>·</span> ")
+        .append(escape(pageTitle))
+        .append("<span class='subtitle'>(")
+        .append(total)
+        .append(" file")
+        .append(total == 1 ? "" : "s")
+        .append(" compared)</span></h1>\n");
+    html.append("  <span class='match-badge tone-")
+        .append(tone)
+        .append("'>")
+        .append("<span class='bullet'></span>")
+        .append(String.format("%.1f", matchPct))
+        .append("% rows match</span>\n");
+    html.append("</div>\n");
 
-        // summary cards (file-level)
-        html.append("<div class='summary-cards'>\n");
-        html.append(card("identical", "&check;",    "Identical",       identical));
-        html.append(card("changed",   "&lt;/&gt;",  "With differences", differ));
-        html.append(card("removed",   "&minus;",    "Only in old",      onlyOld));
-        html.append(card("added",     "&plus;",     "Only in new",      onlyNew));
-        html.append("</div>\n");
+    // summary cards (file-level)
+    html.append("<div class='summary-cards'>\n");
+    html.append(card("identical", "&check;", "Identical", identical));
+    html.append(card("changed", "&lt;/&gt;", "With differences", differ));
+    html.append(card("removed", "&minus;", "Only in old", onlyOld));
+    html.append(card("added", "&plus;", "Only in new", onlyNew));
+    html.append("</div>\n");
 
-        // aggregate row-level counters
-        html.append("<div class='row-totals'>\n");
-        html.append("  <div class='tot tot-changed'><span class='label'>Changed rows</span><span class='val'>")
-            .append(result.getTotalChangedRows()).append("</span></div>\n");
-        html.append("  <div class='tot tot-added'><span class='label'>Added rows</span><span class='val'>")
-            .append(result.getTotalAddedRows()).append("</span></div>\n");
-        html.append("  <div class='tot tot-removed'><span class='label'>Removed rows</span><span class='val'>")
-            .append(result.getTotalRemovedRows()).append("</span></div>\n");
-        html.append("  <div class='tot tot-unchanged'><span class='label'>Unchanged rows</span><span class='val'>")
-            .append(result.getTotalUnchangedRows()).append("</span></div>\n");
-        html.append("</div>\n");
+    // aggregate row-level counters
+    html.append("<div class='row-totals'>\n");
+    html.append(
+            "  <div class='tot tot-changed'><span class='label'>Changed rows</span><span class='val'>")
+        .append(result.getTotalChangedRows())
+        .append("</span></div>\n");
+    html.append(
+            "  <div class='tot tot-added'><span class='label'>Added rows</span><span class='val'>")
+        .append(result.getTotalAddedRows())
+        .append("</span></div>\n");
+    html.append(
+            "  <div class='tot tot-removed'><span class='label'>Removed rows</span><span class='val'>")
+        .append(result.getTotalRemovedRows())
+        .append("</span></div>\n");
+    html.append(
+            "  <div class='tot tot-unchanged'><span class='label'>Unchanged rows</span><span class='val'>")
+        .append(result.getTotalUnchangedRows())
+        .append("</span></div>\n");
+    html.append("</div>\n");
 
-        // meta strip
-        String keys = result.getKeyFields().isEmpty() ? "(none)" : String.join(", ", result.getKeyFields());
-        html.append("<div class='meta'>\n");
-        html.append("  <span class='pill'><span class='glyph'>&#x1F4C1;</span><span class='label'>Old dir</span>")
-            .append("<span class='value'>").append(escape(result.getOldDir())).append("</span></span>\n");
-        html.append("  <span class='pill'><span class='glyph'>&#x1F4C1;</span><span class='label'>New dir</span>")
-            .append("<span class='value'>").append(escape(result.getNewDir())).append("</span></span>\n");
-        html.append("  <span class='pill'><span class='glyph'>&#x1F50D;</span><span class='label'>Pattern</span>")
-            .append("<span class='value'>").append(escape(result.getPattern())).append("</span></span>\n");
-        html.append("  <span class='pill'><span class='glyph'>&#x1F511;</span><span class='label'>Keys</span>")
-            .append("<span class='value'>").append(escape(keys)).append("</span></span>\n");
-        html.append("  <span class='pill'><span class='glyph'>&#x1F552;</span><span class='label'>Generated</span>")
-            .append("<span class='value'>")
-            .append(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
-            .append("</span></span>\n");
-        html.append("</div>\n");
+    // meta strip
+    String keys =
+        result.getKeyFields().isEmpty() ? "(none)" : String.join(", ", result.getKeyFields());
+    html.append("<div class='meta'>\n");
+    html.append(
+            "  <span class='pill'><span class='glyph'>&#x1F4C1;</span><span class='label'>Old dir</span>")
+        .append("<span class='value'>")
+        .append(escape(result.getOldDir()))
+        .append("</span></span>\n");
+    html.append(
+            "  <span class='pill'><span class='glyph'>&#x1F4C1;</span><span class='label'>New dir</span>")
+        .append("<span class='value'>")
+        .append(escape(result.getNewDir()))
+        .append("</span></span>\n");
+    html.append(
+            "  <span class='pill'><span class='glyph'>&#x1F50D;</span><span class='label'>Pattern</span>")
+        .append("<span class='value'>")
+        .append(escape(result.getPattern()))
+        .append("</span></span>\n");
+    html.append(
+            "  <span class='pill'><span class='glyph'>&#x1F511;</span><span class='label'>Keys</span>")
+        .append("<span class='value'>")
+        .append(escape(keys))
+        .append("</span></span>\n");
+    html.append(
+            "  <span class='pill'><span class='glyph'>&#x1F552;</span><span class='label'>Generated</span>")
+        .append("<span class='value'>")
+        .append(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+        .append("</span></span>\n");
+    html.append("</div>\n");
 
-        // toolbar (filter by file status)
-        html.append("<div class='toolbar'>\n");
-        html.append(filterBtn("all",       "&#x25A6;",    "All files",        total,     true));
-        html.append(filterBtn("different", "&lt;/&gt;",   "With differences", differ,    false));
-        html.append(filterBtn("identical", "&check;",     "Identical",        identical, false));
-        html.append(filterBtn("only_old",  "&minus;",     "Only in old",      onlyOld,   false));
-        html.append(filterBtn("only_new",  "&plus;",      "Only in new",      onlyNew,   false));
-        html.append("  <div class='spacer'></div>\n");
-        html.append("  <label class='hide-identical'><input type='checkbox' id='hideIdentical'>"
-                  + "<span>Hide identical</span></label>\n");
-        html.append("</div>\n");
+    // toolbar (filter by file status)
+    html.append("<div class='toolbar'>\n");
+    html.append(filterBtn("all", "&#x25A6;", "All files", total, true));
+    html.append(filterBtn("different", "&lt;/&gt;", "With differences", differ, false));
+    html.append(filterBtn("identical", "&check;", "Identical", identical, false));
+    html.append(filterBtn("only_old", "&minus;", "Only in old", onlyOld, false));
+    html.append(filterBtn("only_new", "&plus;", "Only in new", onlyNew, false));
+    html.append("  <div class='spacer'></div>\n");
+    html.append(
+        "  <label class='hide-identical'><input type='checkbox' id='hideIdentical'>"
+            + "<span>Hide identical</span></label>\n");
+    html.append("</div>\n");
 
-        // table
-        html.append("<div class='table-wrap'><table>\n<thead><tr>");
-        html.append("<th class='row-icon'></th>");
-        html.append("<th>File</th>");
-        html.append("<th class='num'>Old rows</th>");
-        html.append("<th class='num'>New rows</th>");
-        html.append("<th class='num'>Changed</th>");
-        html.append("<th class='num'>Added</th>");
-        html.append("<th class='num'>Removed</th>");
-        html.append("<th class='num'>Unchanged</th>");
-        html.append("<th class='num'>Match</th>");
-        html.append("<th>Detail</th>");
-        html.append("</tr></thead>\n<tbody>\n");
+    // table
+    html.append("<div class='table-wrap'><table>\n<thead><tr>");
+    html.append("<th class='row-icon'></th>");
+    html.append("<th>File</th>");
+    html.append("<th class='num'>Old rows</th>");
+    html.append("<th class='num'>New rows</th>");
+    html.append("<th class='num'>Changed</th>");
+    html.append("<th class='num'>Added</th>");
+    html.append("<th class='num'>Removed</th>");
+    html.append("<th class='num'>Unchanged</th>");
+    html.append("<th class='num'>Match</th>");
+    html.append("<th>Detail</th>");
+    html.append("</tr></thead>\n<tbody>\n");
 
-        if (result.getFileResults().isEmpty()) {
-            html.append("<tr><td colspan='10' class='empty'>No files to compare</td></tr>\n");
-        }
-        Path outputParent = outputPath == null ? null : outputPath.toAbsolutePath().getParent();
-        for (FileDiffResult f : result.getFileResults()) {
-            appendFileRow(html, f, outputParent);
-        }
-        html.append("</tbody>\n</table></div>\n");
-
-        html.append("</div>\n");
-        html.append(SCRIPT);
-        html.append("</body>\n</html>");
-        return html.toString();
+    if (result.getFileResults().isEmpty()) {
+      html.append("<tr><td colspan='10' class='empty'>No files to compare</td></tr>\n");
     }
+    Path outputParent = outputPath == null ? null : outputPath.toAbsolutePath().getParent();
+    for (FileDiffResult f : result.getFileResults()) {
+      appendFileRow(html, f, outputParent);
+    }
+    html.append("</tbody>\n</table></div>\n");
 
-    private static void appendFileRow(StringBuilder html, FileDiffResult f, Path outputParent) {
-        String kind = switch (f.getStatus()) {
-            case IDENTICAL -> "identical";
-            case DIFFERENT -> "different";
-            case ONLY_OLD  -> "only_old";
-            case ONLY_NEW  -> "only_new";
+    html.append("</div>\n");
+    html.append(SCRIPT);
+    html.append("</body>\n</html>");
+    return html.toString();
+  }
+
+  private static void appendFileRow(StringBuilder html, FileDiffResult f, Path outputParent) {
+    String kind =
+        switch (f.getStatus()) {
+          case IDENTICAL -> "identical";
+          case DIFFERENT -> "different";
+          case ONLY_OLD -> "only_old";
+          case ONLY_NEW -> "only_new";
         };
-        String glyph = switch (f.getStatus()) {
-            case IDENTICAL -> "&check;";
-            case DIFFERENT -> "&lt;/&gt;";
-            case ONLY_OLD  -> "&minus;";
-            case ONLY_NEW  -> "&plus;";
+    String glyph =
+        switch (f.getStatus()) {
+          case IDENTICAL -> "&check;";
+          case DIFFERENT -> "&lt;/&gt;";
+          case ONLY_OLD -> "&minus;";
+          case ONLY_NEW -> "&plus;";
         };
-        String badgeLabel = switch (f.getStatus()) {
-            case IDENTICAL -> "Identical";
-            case DIFFERENT -> "Different";
-            case ONLY_OLD  -> "Only in old";
-            case ONLY_NEW  -> "Only in new";
+    String badgeLabel =
+        switch (f.getStatus()) {
+          case IDENTICAL -> "Identical";
+          case DIFFERENT -> "Different";
+          case ONLY_OLD -> "Only in old";
+          case ONLY_NEW -> "Only in new";
         };
 
-        html.append("<tr class='row row-").append(kind)
-            .append("' data-type='").append(kind).append("'>");
-        html.append("<td class='row-icon'><span class='dot'>").append(glyph).append("</span></td>");
-        html.append("<td class='file-cell'>")
-            .append("<span class='fname'>").append(escape(f.getFileName())).append("</span>")
-            .append("<span class='status-pill pill-").append(kind).append("'>").append(badgeLabel).append("</span>");
-        if (f.getErrorMessage() != null) {
-            html.append("<div class='err'>Error: ").append(escape(f.getErrorMessage())).append("</div>");
-        }
-        html.append("</td>");
-        html.append("<td class='num'>").append(f.getOldRowCount()).append("</td>");
-        html.append("<td class='num'>").append(f.getNewRowCount()).append("</td>");
-        html.append("<td class='num'>").append(f.getChangedRows()).append("</td>");
-        html.append("<td class='num'>").append(f.getAddedRows()).append("</td>");
-        html.append("<td class='num'>").append(f.getRemovedRows()).append("</td>");
-        html.append("<td class='num'>").append(f.getUnchangedRows()).append("</td>");
-        html.append("<td class='num'>")
-            .append(String.format("%.1f%%", f.getMatchPercentage()))
-            .append("</td>");
-        html.append("<td>");
-        if (f.getReportPath() != null) {
-            String href = relativizeHref(outputParent, f.getReportPath());
-            html.append("<a class='detail-link' href='").append(escape(href)).append("'>View &rarr;</a>");
-        } else {
-            html.append("<span class='dim'>&mdash;</span>");
-        }
-        html.append("</td>");
-        html.append("</tr>\n");
+    html.append("<tr class='row row-")
+        .append(kind)
+        .append("' data-type='")
+        .append(kind)
+        .append("'>");
+    html.append("<td class='row-icon'><span class='dot'>").append(glyph).append("</span></td>");
+    html.append("<td class='file-cell'>")
+        .append("<span class='fname'>")
+        .append(escape(f.getFileName()))
+        .append("</span>")
+        .append("<span class='status-pill pill-")
+        .append(kind)
+        .append("'>")
+        .append(badgeLabel)
+        .append("</span>");
+    if (f.getErrorMessage() != null) {
+      html.append("<div class='err'>Error: ").append(escape(f.getErrorMessage())).append("</div>");
     }
-
-    private static String relativizeHref(Path base, String target) {
-        if (target == null) return "";
-        Path abs = Paths.get(target).toAbsolutePath();
-        if (base == null) return abs.toString();
-        try {
-            return base.relativize(abs).toString().replace('\\', '/');
-        } catch (IllegalArgumentException e) {
-            return abs.toString();
-        }
+    html.append("</td>");
+    html.append("<td class='num'>").append(f.getOldRowCount()).append("</td>");
+    html.append("<td class='num'>").append(f.getNewRowCount()).append("</td>");
+    html.append("<td class='num'>").append(f.getChangedRows()).append("</td>");
+    html.append("<td class='num'>").append(f.getAddedRows()).append("</td>");
+    html.append("<td class='num'>").append(f.getRemovedRows()).append("</td>");
+    html.append("<td class='num'>").append(f.getUnchangedRows()).append("</td>");
+    html.append("<td class='num'>")
+        .append(String.format("%.1f%%", f.getMatchPercentage()))
+        .append("</td>");
+    html.append("<td>");
+    if (f.getReportPath() != null) {
+      String href = relativizeHref(outputParent, f.getReportPath());
+      html.append("<a class='detail-link' href='").append(escape(href)).append("'>View &rarr;</a>");
+    } else {
+      html.append("<span class='dim'>&mdash;</span>");
     }
+    html.append("</td>");
+    html.append("</tr>\n");
+  }
 
-    private static String card(String kind, String glyph, String label, int count) {
-        return String.format(
-            "  <div class='card card-%1$s'>"
+  private static String relativizeHref(Path base, String target) {
+    if (target == null) return "";
+    Path abs = Paths.get(target).toAbsolutePath();
+    if (base == null) return abs.toString();
+    try {
+      return base.relativize(abs).toString().replace('\\', '/');
+    } catch (IllegalArgumentException e) {
+      return abs.toString();
+    }
+  }
+
+  private static String card(String kind, String glyph, String label, int count) {
+    return String.format(
+        "  <div class='card card-%1$s'>"
             + "<span class='icon'>%2$s</span>"
             + "<div class='meta-col'><div class='label'>%3$s</div><div class='count'>%4$d</div></div>"
             + "</div>\n",
-            kind, glyph, label, count
-        );
-    }
+        kind, glyph, label, count);
+  }
 
-    private static String filterBtn(String filter, String glyph, String label, int count, boolean active) {
-        return String.format(
-            "  <button class='filter-btn%1$s' data-filter='%2$s'>"
+  private static String filterBtn(
+      String filter, String glyph, String label, int count, boolean active) {
+    return String.format(
+        "  <button class='filter-btn%1$s' data-filter='%2$s'>"
             + "<span class='g'>%3$s</span><span class='txt'>%4$s</span>"
             + "<span class='badge'>%5$d</span></button>\n",
-            active ? " active" : "", filter, glyph, label, count
-        );
-    }
+        active ? " active" : "", filter, glyph, label, count);
+  }
 
-    private static String escape(String s) {
-        if (s == null) return "";
-        return s.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;")
-                .replace("'", "&#39;");
-    }
+  private static String escape(String s) {
+    if (s == null) return "";
+    return s.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace("\"", "&quot;")
+        .replace("'", "&#39;");
+  }
 
-    private static final String STYLES = """
+  private static final String STYLES =
+      """
         <style>
           :root {
             --bg:          #f6f8fa;
@@ -406,7 +444,8 @@ public final class DirectoryDiffReportGenerator {
         </style>
         """;
 
-    private static final String SCRIPT = """
+  private static final String SCRIPT =
+      """
         <script>
         (function () {
           const buttons = document.querySelectorAll('.filter-btn[data-filter]');
